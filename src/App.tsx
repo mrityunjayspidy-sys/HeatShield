@@ -151,19 +151,20 @@ export default function App() {
   }
 
   const activeSession: UserSession = userSession || {
-    id: 'usr_default',
-    email: 'alex.morgan@example.com',
-    name: 'Alex Morgan',
-    age: 35,
-    weightKg: 75,
-    heightCm: 175,
-    conditions: ['cardiovascular'],
+    id: 'usr_guest',
+    email: '',
+    name: 'Guest User',
+    gender: 'other',
+    age: 28,
+    weightKg: 68,
+    heightCm: 170,
+    conditions: [],
     medications: false,
-    outdoor: true,
+    outdoor: false,
     emergencyContact: {
-      name: 'Dr. Sarah Morgan',
-      phone: '+1 555-019-2834',
-      relationship: 'Primary Physician',
+      name: '',
+      phone: '',
+      relationship: '',
     },
     createdAt: new Date().toISOString(),
   };

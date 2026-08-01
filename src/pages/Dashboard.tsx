@@ -26,14 +26,15 @@ interface DashboardProps {
   tempUnit?: 'C' | 'F';
 }
 
-// Default fallback health profile
+// Default clean user profile fallback
 const DEFAULT_HEALTH_PROFILE = {
-  age: 35,
-  weightKg: 75,
-  heightCm: 175,
-  conditions: ['cardiovascular'],
+  gender: 'other' as const,
+  age: 28,
+  weightKg: 68,
+  heightCm: 170,
+  conditions: [] as string[],
   medicationsAffectingHeat: false,
-  outdoorOccupation: true,
+  outdoorOccupation: false,
   sunExposureLevel: 'moderate' as const,
 };
 
@@ -95,13 +96,14 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
   const currentUv = weather ? weather.uvIndex : 9.2;
 
   const realUserProfile = userSession ? {
-    age: userSession.age ?? 35,
-    weightKg: userSession.weightKg ?? 75,
-    heightCm: userSession.heightCm ?? 175,
-    conditions: userSession.conditions ?? ['cardiovascular'],
-    medicationsAffectingHeat: userSession.medications ?? false,
-    outdoorOccupation: userSession.outdoor ?? true,
-    sunExposureLevel: 'moderate' as const,
+    gender: userSession.gender,
+    age: userSession.age,
+    weightKg: userSession.weightKg,
+    heightCm: userSession.heightCm,
+    conditions: userSession.conditions || [],
+    medicationsAffectingHeat: userSession.medications || false,
+    outdoorOccupation: userSession.outdoor || false,
+    sunExposureLevel: (userSession.sunSensitivity as 'low' | 'moderate' | 'high') || 'moderate',
   } : DEFAULT_HEALTH_PROFILE;
 
   const scoringInput: ScoringInput = {
