@@ -175,7 +175,11 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       const { user, error: authErr } = await signInWithEmail(email, password);
       setAuthLoading(false);
       if (authErr || !user) {
-        setError(authErr ?? 'Login failed. Please check your credentials.');
+        if (authErr?.includes('Invalid login credentials')) {
+          setError('No user found with this email/password in Supabase. Switch to Register tab to create this account, or use the 1-click test credentials.');
+        } else {
+          setError(authErr ?? 'Login failed. Please check your credentials.');
+        }
         return;
       }
 
