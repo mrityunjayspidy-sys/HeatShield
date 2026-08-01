@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User as UserIcon, Mail, Heart, Phone, ShieldCheck, Edit3, Save, LogOut, Activity, Flame } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { User as UserIcon, Phone, ShieldCheck, Edit3, Save, LogOut } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
-import { GlassChip } from '../components/ui/GlassChip';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import { type UserSession, saveUserSession, clearUserSession } from '../lib/supabase';
 

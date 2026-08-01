@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, AlertTriangle, Flame, Droplets } from 'lucide-react';
+import { Bell, Check, AlertTriangle, Flame } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import type { RiskTier } from '../lib/scoring';

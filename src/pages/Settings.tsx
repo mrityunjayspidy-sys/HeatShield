@@ -42,8 +42,6 @@ const FEATURE_OPTIONS = [
   { id: 'heatmap',     label: '🗺️ City Heat Map' },
 ];
 
-const FEEDBACK_STORAGE_KEY = 'heatwatch_feedback';
-
 interface SettingsPageProps {
   tempUnit: 'C' | 'F';
   onTempUnitChange: (unit: 'C' | 'F') => void;

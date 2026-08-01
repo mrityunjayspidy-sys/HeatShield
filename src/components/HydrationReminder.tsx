@@ -5,7 +5,7 @@
  */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplets, Bell, BellOff, Volume2, Clock, ShieldCheck, Flame } from 'lucide-react';
+import { Droplets, Bell, BellOff, Volume2, Flame } from 'lucide-react';
 import { GlassCard } from './ui/GlassCard';
 import type { RiskTier } from '../lib/scoring';
 import { TIER_COLORS } from '../lib/scoring';

@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Eye, EyeOff, Lock, Mail, User as UserIcon,
   CheckCircle2, AlertCircle, ArrowRight, Sun, Droplets,
-  ChevronLeft, ChevronRight, Loader2, KeyRound, Info,
+  ChevronLeft, ChevronRight, Loader2, KeyRound,
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import {
   signUpWithEmail, signInWithEmail, sendPasswordReset,
-  upsertProfile, isSupabaseConfigured,
+  upsertProfile, fetchProfile,
   type UserSession,
 } from '../lib/supabase';
 

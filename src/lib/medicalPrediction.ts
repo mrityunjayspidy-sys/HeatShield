@@ -18,7 +18,7 @@ export interface MedicalPredictionResult {
 export function predictMedicalConditions(
   user: UserSession,
   heatIndexC: number,
-  uvIndex: number,
+  _uvIndex: number,
   waterIntakeMl: number = 1500
 ): MedicalPredictionResult {
   const predictions: PredictedCondition[] = [];
@@ -26,6 +26,7 @@ export function predictMedicalConditions(
 
   // BMI calculation
   const bmi = user.weightKg / ((user.heightCm / 100) ** 2);
+  if (bmi >= 30) keyFactors.push(`High BMI (${bmi.toFixed(1)}) increases heat storage`);
 
   // -------------------------------------------------------------
   // 1. HEAT EXHAUSTION PREDICTION

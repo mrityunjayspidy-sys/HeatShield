@@ -40,7 +40,7 @@ type WeatherScenario =
 
 function classifyScenario(
   tempC: number,
-  uvIndex: number,
+  _uvIndex: number,
   condition: WeatherCondition,
   windKmh: number,
   precipMm: number,
@@ -337,7 +337,7 @@ const ALL_ITEMS: ClothingItem[] = [
   {
     id: 'snow_goggles',
     emoji: '🥽', name: 'Snow Goggles / Polarised Glasses', material: 'Polycarbonate lens',
-    heatAbsorption: 'none', uvProtection: 'max', warmth: 'none',
+    heatAbsorption: 'very low', uvProtection: 'max', warmth: 'none',
     scenarios: ['snowy'],
     description: 'Snow reflects up to 80% of UV rays — UV exposure in snow can exceed equatorial sun.',
     tip: 'Snow blindness (photokeratitis) can occur in as little as 30 min without UV protection.',
@@ -410,7 +410,7 @@ const COLOR_HEAT_GUIDE = [
 ];
 
 export function ClothingRecommendation({
-  tempC, uvIndex, tier, skinType, tempUnit,
+  tempC, uvIndex, tier: _tier, skinType, tempUnit,
   weatherCondition = 'clear', windSpeedKmh = 0, precipMm = 0, humidityPct = 50,
 }: ClothingRecommendationProps) {
   const [expanded, setExpanded] = useState(false);

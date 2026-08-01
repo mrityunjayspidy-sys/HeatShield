@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight, Sun, Activity, Droplets, Zap } from 'lucide-react';
+import { Shield, ArrowRight, Sun, Activity, Droplets } from 'lucide-react';
 import SideRays from '../components/ui/SideRays';
 import BlurText from '../components/ui/BlurText';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -18,7 +18,7 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       color: '#FFFFFF',
       display: 'flex',
       flexDirection: 'column',
-      justify: 'center',
+      justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
       padding: '40px 20px',

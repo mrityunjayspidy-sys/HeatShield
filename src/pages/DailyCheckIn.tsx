@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Briefcase, MapPin, Sun, Clock, ChevronRight, ChevronLeft,
+  Briefcase, MapPin, Clock, ChevronRight, ChevronLeft,
   CheckCircle2, Building2, TreePine, Home, Hammer, ShoppingCart, Car,
 } from 'lucide-react';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';

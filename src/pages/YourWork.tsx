@@ -13,7 +13,6 @@ import {
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import type { DailyCheckIn } from './DailyCheckIn';
-import { getTodayKey } from './DailyCheckIn';
 import type { LiveWeatherData } from '../lib/weather';
 import { computeHeatScore, type ScoringInput, type RiskTier, TIER_COLORS } from '../lib/scoring';
 
