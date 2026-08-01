@@ -216,11 +216,6 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         setError(authErr ?? 'Sign up failed. Please try again.');
         return;
       }
-      // Supabase may require email verification before the session is active
-      if (!user.confirmed_at && !user.email_confirmed_at) {
-        setShowEmailVerification(true);
-        return;
-      }
       const session: UserSession = {
         id: user.id,
         email: user.email ?? email,
@@ -418,6 +413,30 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
       {/* Form Card */}
       <GlassCard elevation="hero">
+        {/* Quick Demo Credentials shortcut */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '8px 12px', borderRadius: 12, marginBottom: 14,
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+        }}>
+          <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 600 }}>Test Account:</span>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('alex.morgan@example.com');
+              setPassword('Password123!');
+              setName('Alex Morgan');
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 8, padding: '4px 10px', color: '#FFF', fontSize: 11, fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            ⚡ Auto-fill Test Credentials
+          </button>
+        </div>
+
         <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <AnimatePresence>
             {error && (
