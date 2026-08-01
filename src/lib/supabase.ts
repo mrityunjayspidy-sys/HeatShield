@@ -85,9 +85,27 @@ export async function signUpWithEmail(
   email: string,
   password: string,
 ): Promise<{ user: User | null; error: string | null }> {
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return { user: null, error: error.message };
-  return { user: data.user, error: null };
+  if (!isSupabaseConfigured) {
+    // Offline/Demo fallback user
+    const mockUser: Partial<User> = {
+      id: `usr_${Date.now()}`,
+      email,
+      created_at: new Date().toISOString(),
+      user_metadata: { name: email.split('@')[0] },
+    };
+    return { user: mockUser as User, error: null };
+  }
+  try {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { user: null, error: error.message };
+    return { user: data.user, error: null };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    if (msg.includes('Failed to fetch')) {
+      return { user: null, error: 'Cannot connect to Supabase. Check Vercel environment variables (VITE_SUPABASE_URL) or project CORS settings.' };
+    }
+    return { user: null, error: msg };
+  }
 }
 
 /** Sign in with email + password. */
@@ -95,9 +113,27 @@ export async function signInWithEmail(
   email: string,
   password: string,
 ): Promise<{ user: User | null; error: string | null }> {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { user: null, error: error.message };
-  return { user: data.user, error: null };
+  if (!isSupabaseConfigured) {
+    // Offline/Demo fallback user
+    const mockUser: Partial<User> = {
+      id: `usr_${Date.now()}`,
+      email,
+      created_at: new Date().toISOString(),
+      user_metadata: { name: email.split('@')[0] },
+    };
+    return { user: mockUser as User, error: null };
+  }
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { user: null, error: error.message };
+    return { user: data.user, error: null };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    if (msg.includes('Failed to fetch')) {
+      return { user: null, error: 'Cannot connect to Supabase. Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in Vercel Project Settings.' };
+    }
+    return { user: null, error: msg };
+  }
 }
 
 /** Sign out from Supabase and clear local cache. */
