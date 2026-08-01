@@ -2,18 +2,15 @@ import { createClient } from '@supabase/supabase-js';
 import type { User } from '@supabase/supabase-js';
 
 // ── Client ────────────────────────────────────────────────────────────────────
-const SUPABASE_URL     = import.meta.env.VITE_SUPABASE_URL     as string | undefined;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const REAL_SUPABASE_URL = 'https://yqltkmvunvrzlsizseau.supabase.co';
+const REAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxbHRrbXZ1bnZyemxzaXpzZWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1NzkzOTYsImV4cCI6MjEwMTE1NTM5Nn0.E5fgZVlx_XVxwhlufYEaXa2GRwyi01aZv1w0uwASzw4';
 
-export const isSupabaseConfigured =
-  Boolean(SUPABASE_URL && !SUPABASE_URL.includes('your_') &&
-          SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('your_'));
+const SUPABASE_URL     = (import.meta.env.VITE_SUPABASE_URL as string)     || REAL_SUPABASE_URL;
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || REAL_SUPABASE_ANON_KEY;
 
-// Safe client — if no real credentials we still export a client but auth will fail gracefully
-export const supabase = createClient(
-  SUPABASE_URL     ?? 'https://placeholder.supabase.co',
-  SUPABASE_ANON_KEY ?? 'placeholder',
-);
+export const isSupabaseConfigured = true;
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── User profile (stored in Supabase `profiles` table + localStorage cache) ──
 export interface UserProfile {
@@ -85,16 +82,6 @@ export async function signUpWithEmail(
   email: string,
   password: string,
 ): Promise<{ user: User | null; error: string | null }> {
-  if (!isSupabaseConfigured) {
-    // Offline/Demo fallback user
-    const mockUser: Partial<User> = {
-      id: `usr_${Date.now()}`,
-      email,
-      created_at: new Date().toISOString(),
-      user_metadata: { name: email.split('@')[0] },
-    };
-    return { user: mockUser as User, error: null };
-  }
   try {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { user: null, error: error.message };
@@ -102,7 +89,7 @@ export async function signUpWithEmail(
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Network error';
     if (msg.includes('Failed to fetch')) {
-      return { user: null, error: 'Cannot connect to Supabase. Check Vercel environment variables (VITE_SUPABASE_URL) or project CORS settings.' };
+      return { user: null, error: 'Cannot connect to Supabase backend. Please check internet connection.' };
     }
     return { user: null, error: msg };
   }
@@ -113,16 +100,6 @@ export async function signInWithEmail(
   email: string,
   password: string,
 ): Promise<{ user: User | null; error: string | null }> {
-  if (!isSupabaseConfigured) {
-    // Offline/Demo fallback user
-    const mockUser: Partial<User> = {
-      id: `usr_${Date.now()}`,
-      email,
-      created_at: new Date().toISOString(),
-      user_metadata: { name: email.split('@')[0] },
-    };
-    return { user: mockUser as User, error: null };
-  }
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { user: null, error: error.message };
@@ -130,7 +107,7 @@ export async function signInWithEmail(
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Network error';
     if (msg.includes('Failed to fetch')) {
-      return { user: null, error: 'Cannot connect to Supabase. Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in Vercel Project Settings.' };
+      return { user: null, error: 'Cannot connect to Supabase backend. Please check internet connection.' };
     }
     return { user: null, error: msg };
   }
