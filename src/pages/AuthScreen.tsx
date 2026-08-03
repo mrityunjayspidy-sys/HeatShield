@@ -4,6 +4,7 @@ import {
   Shield, Eye, EyeOff, Lock, Mail, User as UserIcon,
   CheckCircle2, AlertCircle, ArrowRight, Sun, Droplets,
   ChevronLeft, ChevronRight, Loader2, KeyRound,
+  Activity, Scale, Pill,
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
@@ -124,14 +125,26 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  // Wizard state: null = auth form, 'skin' = step A, 'hydration' = step B
-  const [wizardStep, setWizardStep] = useState<null | 'skin' | 'hydration'>(null);
+  // Wizard state: null = auth form, 'body' = Step 1 (Age/Height/Weight/Gender), 'diseases' = Step 2 (Conditions/Diseases), 'hydration' = Step 3 (Sun/Skin/Hydration)
+  const [wizardStep, setWizardStep] = useState<null | 'body' | 'diseases' | 'hydration'>(null);
 
   // Temporary session built at auth submit, enriched through wizard
   const [pendingSession, setPendingSession] = useState<UserSession | null>(null);
 
-  // Health profile form
+  // Health profile form - Body Metrics
+  const [age, setAge] = useState(28);
+  const [heightCm, setHeightCm] = useState(170);
+  const [weightKg, setWeightKg] = useState(68);
   const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
+
+  // Health profile form - Diseases & Conditions
+  const [conditions, setConditions] = useState<string[]>([]);
+  const [medications, setMedications] = useState(false);
+  const [outdoor, setOutdoor] = useState(false);
+  const [pastHeatStroke, setPastHeatStroke] = useState(false);
+  const [bloodPressure, setBloodPressure] = useState<'normal' | 'elevated' | 'high'>('normal');
+
+  // Health profile form - Sun & Hydration
   const [skinType, setSkinType] = useState<SkinTypeId>('III');
   const [sunSensitivity, setSunSensitivity] = useState<'very_sensitive' | 'moderate' | 'resistant'>('moderate');
   const [sunHours, setSunHours] = useState(4);
@@ -188,7 +201,15 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
       if (existingProfile) {
         // Pre-fill state with user's saved personal health data
+        setAge(existingProfile.age || 28);
+        setHeightCm(existingProfile.heightCm || 170);
+        setWeightKg(existingProfile.weightKg || 68);
         setGender(existingProfile.gender || 'male');
+        setConditions(existingProfile.conditions || []);
+        setMedications(existingProfile.medications || false);
+        setOutdoor(existingProfile.outdoor || false);
+        setPastHeatStroke(existingProfile.pastHeatStrokeHistory || false);
+        setBloodPressure(existingProfile.bloodPressure || 'normal');
         setSkinType(existingProfile.skinType || 'III');
         setSunSensitivity(existingProfile.sunSensitivity || 'moderate');
         setSunHours(existingProfile.sunExposureHoursPerDay || 4);
@@ -204,14 +225,14 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
           id: user.id,
           email: user.email ?? email,
           name: (user.user_metadata?.name as string | undefined) || name || email.split('@')[0],
-          age: 35, weightKg: 75, heightCm: 175,
+          age: 28, weightKg: 68, heightCm: 170,
           conditions: [], medications: false, outdoor: false,
           emergencyContact: { name: 'Primary Contact', phone: '', relationship: 'Contact' },
           createdAt: user.created_at,
         };
         setPendingSession(session);
       }
-      setWizardStep('skin');
+      setWizardStep('body');
     } else {
       // ── Sign up ───────────────────────────────────────────────────────────
       const { user, error: authErr } = await signUpWithEmail(email, password);
@@ -224,23 +245,32 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         id: user.id,
         email: user.email ?? email,
         name: name || email.split('@')[0],
-        age: 35, weightKg: 75, heightCm: 175,
+        age: 28, weightKg: 68, heightCm: 170,
         conditions: [], medications: false, outdoor: false,
         emergencyContact: { name: 'Primary Contact', phone: '', relationship: 'Contact' },
         createdAt: new Date().toISOString(),
       };
       setPendingSession(session);
-      setWizardStep('skin');
+      setWizardStep('body');
     }
   };
 
-  const handleSkinNext = () => setWizardStep('hydration');
+  const handleBodyNext = () => setWizardStep('diseases');
+  const handleDiseasesNext = () => setWizardStep('hydration');
 
   const handleHydrationFinish = async () => {
     if (!pendingSession) return;
     const full: UserSession = {
       ...pendingSession,
+      age,
+      heightCm,
+      weightKg,
       gender,
+      conditions,
+      medications,
+      outdoor,
+      pastHeatStrokeHistory: pastHeatStroke,
+      bloodPressure,
       skinType,
       sunSensitivity,
       sunExposureHoursPerDay: sunHours,
@@ -562,28 +592,28 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
     </motion.div>
   );
 
-  // ── Wizard Step A: Sun & Skin ───────────────────────────────────────────────
-  const renderSkinStep = () => (
-    <motion.div key="skin" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit"
+  // ── Wizard Step 1: Body Metrics & Age ───────────────────────────────────────
+  const renderBodyStep = () => (
+    <motion.div key="body" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit"
       transition={{ type: 'spring', damping: 26, stiffness: 220 }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <div style={{
-          width: 56, height: 56, borderRadius: 18, background: 'rgba(255,180,0,0.15)',
-          border: '1px solid rgba(255,200,0,0.3)', display: 'inline-flex',
+          width: 56, height: 56, borderRadius: 18, background: 'rgba(167,139,250,0.15)',
+          border: '1px solid rgba(167,139,250,0.3)', display: 'inline-flex',
           alignItems: 'center', justifyContent: 'center', marginBottom: 10,
         }}>
-          <Sun size={28} color="#FFD700" />
+          <Scale size={28} color="#A78BFA" />
         </div>
-        <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Sun & Skin Profile</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Step 1: Body & Age</h1>
         <p style={{ fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
-          Personalises your UV risk score and sun safety alerts.
+          Sets your baseline metabolic heat regulation & thermal stress capacity.
         </p>
         {/* Progress pills */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14 }}>
-          {['Sun & Skin', 'Hydration'].map((s, i) => (
+          {['1. Body', '2. Diseases', '3. Hydration'].map((s, i) => (
             <motion.div key={s}
-              animate={{ width: i === 0 ? 32 : 10, background: i === 0 ? '#FFD700' : 'rgba(255,255,255,0.2)' }}
+              animate={{ width: i === 0 ? 32 : 10, background: i === 0 ? '#A78BFA' : 'rgba(255,255,255,0.2)' }}
               style={{ height: 6, borderRadius: 3 }}
             />
           ))}
@@ -591,21 +621,51 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       </div>
 
       <GlassCard elevation="hero">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* Gender selection */}
+          {/* Age Slider */}
+          <GlassSlider
+            label="Age"
+            value={age} min={5} max={95} step={1}
+            onChange={setAge} unit="yrs"
+          />
+
+          {/* Height Slider */}
+          <GlassSlider
+            label="Height"
+            value={heightCm} min={100} max={220} step={1}
+            onChange={setHeightCm} unit="cm"
+          />
+
+          {/* Weight Slider */}
+          <GlassSlider
+            label="Weight"
+            value={weightKg} min={30} max={160} step={1}
+            onChange={setWeightKg} unit="kg"
+          />
+
+          {/* BMI preview tag */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)', fontSize: 12,
+          }}>
+            <span style={{ color: '#A1A1AA' }}>Calculated BMI:</span>
+            <span style={{ color: '#FFF', fontWeight: 800 }}>
+              {(weightKg / ((heightCm / 100) ** 2)).toFixed(1)} kg/m²
+            </span>
+          </div>
+
+          {/* Biological Gender */}
           <div>
             <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-              Biological Gender (Physiological Heat Exposure)
-            </p>
-            <p style={{ fontSize: 11, color: '#64748B', marginBottom: 10, lineHeight: 1.4 }}>
-              Males lose sweat ~20% faster in high thermal stress. Females retain heat differently based on body surface ratio.
+              Biological Gender
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               {[
-                { id: 'male', label: '👨 Male', desc: '+20% sweat rate loss' },
-                { id: 'female', label: '👩 Female', desc: 'Higher core temp storage' },
-                { id: 'other', label: '👤 Other', desc: 'Standard thermal model' },
+                { id: 'male', label: '👨 Male', desc: '+20% sweat rate' },
+                { id: 'female', label: '👩 Female', desc: 'Core temp storage' },
+                { id: 'other', label: '👤 Other', desc: 'Standard model' },
               ].map((g) => (
                 <button
                   key={g.id}
@@ -625,10 +685,247 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
               ))}
             </div>
           </div>
+        </div>
+      </GlassCard>
+
+      <motion.button
+        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }}
+        onClick={handleBodyNext} type="button"
+        style={{
+          width: '100%', marginTop: 18, padding: '14px', borderRadius: 16,
+          background: '#FFFFFF', border: 'none', color: '#000',
+          fontWeight: 800, fontSize: 15, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: '0 4px 20px rgba(255,255,255,0.2)',
+        }}
+      >
+        Next: Select Diseases & Conditions <ChevronRight size={18} />
+      </motion.button>
+    </motion.div>
+  );
+
+  // ── Wizard Step 2: Diseases & Medical Conditions ────────────────────────────
+  const renderDiseasesStep = () => {
+    const DISEASE_OPTIONS = [
+      { id: 'cardiovascular', label: '🫀 Heart / Cardiovascular', desc: 'Limits blood pumping efficiency in heat' },
+      { id: 'diabetes', label: '🩸 Diabetes', desc: 'Impairs sweating & blood vessel dilation' },
+      { id: 'kidney', label: '🫘 Kidney Disease', desc: 'Impairs electrolyte & fluid regulation' },
+      { id: 'respiratory', label: '🫁 Asthma / Respiratory', desc: 'Hot air triggers airway constriction' },
+      { id: 'hypertension', label: '🩺 High Blood Pressure', desc: 'Increases heat strain on blood vessels' },
+      { id: 'pregnant', label: '🤰 Pregnancy', desc: 'Raises baseline body core temperature' },
+    ];
+
+    const toggleCondition = (id: string) => {
+      if (conditions.includes(id)) {
+        setConditions(conditions.filter((c) => c !== id));
+      } else {
+        setConditions([...conditions, id]);
+      }
+    };
+
+    return (
+      <motion.div key="diseases" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit"
+        transition={{ type: 'spring', damping: 26, stiffness: 220 }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 18, background: 'rgba(239,68,68,0.15)',
+            border: '1px solid rgba(239,68,68,0.3)', display: 'inline-flex',
+            alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+          }}>
+            <Activity size={28} color="#EF4444" />
+          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Step 2: Diseases & Conditions</h1>
+          <p style={{ fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
+            Select any pre-existing conditions or medical factors.
+          </p>
+          {/* Progress pills */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14 }}>
+            {['1. Body', '2. Diseases', '3. Hydration'].map((s, i) => (
+              <motion.div key={s}
+                animate={{ width: i === 1 ? 32 : 10, background: i === 1 ? '#EF4444' : 'rgba(255,255,255,0.2)' }}
+                style={{ height: 6, borderRadius: 3 }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <GlassCard elevation="hero">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+            {/* Diseases selection */}
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                Pre-existing Medical Conditions / Diseases
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                {DISEASE_OPTIONS.map((d) => {
+                  const active = conditions.includes(d.id);
+                  return (
+                    <motion.button
+                      key={d.id}
+                      whileTap={{ scale: 0.95 }}
+                      type="button"
+                      onClick={() => toggleCondition(d.id)}
+                      style={{
+                        padding: '10px 10px', borderRadius: 12, textAlign: 'left', cursor: 'pointer',
+                        background: active ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)',
+                        border: `1.5px solid ${active ? '#EF4444' : 'rgba(255,255,255,0.12)'}`,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <div style={{ fontSize: 12, fontWeight: 800, color: active ? '#FFF' : '#A1A1AA' }}>
+                        {d.label}
+                      </div>
+                      <div style={{ fontSize: 9, color: active ? '#FCA5A5' : '#52525B', marginTop: 3, lineHeight: 1.2 }}>
+                        {d.desc}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Additional Risk Factors */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 6 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                Medication & Work Exposure
+              </p>
+
+              {/* Medication toggle */}
+              <button
+                type="button"
+                onClick={() => setMedications(!medications)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
+                  background: medications ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.05)',
+                  border: `1.5px solid ${medications ? '#A78BFA' : 'rgba(255,255,255,0.12)'}`,
+                  color: medications ? '#FFF' : '#A1A1AA', textAlign: 'left',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Pill size={18} color={medications ? '#A78BFA' : '#64748B'} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800 }}>Heat-Affecting Medications</div>
+                    <div style={{ fontSize: 10, color: medications ? '#DDD6FE' : '#52525B' }}>Diuretics, Beta-blockers, Antihistamines</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 900 }}>{medications ? 'YES' : 'NO'}</div>
+              </button>
+
+              {/* Outdoor Work toggle */}
+              <button
+                type="button"
+                onClick={() => setOutdoor(!outdoor)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
+                  background: outdoor ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.05)',
+                  border: `1.5px solid ${outdoor ? '#F59E0B' : 'rgba(255,255,255,0.12)'}`,
+                  color: outdoor ? '#FFF' : '#A1A1AA', textAlign: 'left',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Sun size={18} color={outdoor ? '#F59E0B' : '#64748B'} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800 }}>Outdoor Occupation / High Exposure</div>
+                    <div style={{ fontSize: 10, color: outdoor ? '#FDE68A' : '#52525B' }}>Extended work under direct sunlight</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 900 }}>{outdoor ? 'YES' : 'NO'}</div>
+              </button>
+
+              {/* Past heat stroke history */}
+              <button
+                type="button"
+                onClick={() => setPastHeatStroke(!pastHeatStroke)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 14px', borderRadius: 14, cursor: 'pointer',
+                  background: pastHeatStroke ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.05)',
+                  border: `1.5px solid ${pastHeatStroke ? '#EF4444' : 'rgba(255,255,255,0.12)'}`,
+                  color: pastHeatStroke ? '#FFF' : '#A1A1AA', textAlign: 'left',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Activity size={18} color={pastHeatStroke ? '#EF4444' : '#64748B'} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800 }}>Past History of Heat Stroke / Exhaustion</div>
+                    <div style={{ fontSize: 10, color: pastHeatStroke ? '#FECACA' : '#52525B' }}>Increases physiological recurrence risk</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 900 }}>{pastHeatStroke ? 'YES' : 'NO'}</div>
+              </button>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Navigation */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setWizardStep('body')} type="button"
+            style={{
+              flex: 1, padding: '14px', borderRadius: 16,
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
+              color: '#CBD5E1', fontWeight: 700, cursor: 'pointer', fontSize: 15,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <ChevronLeft size={18} /> Back
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }}
+            onClick={handleDiseasesNext} type="button"
+            style={{
+              flex: 2, padding: '14px', borderRadius: 16,
+              background: '#FFFFFF', border: 'none', color: '#000',
+              fontWeight: 800, fontSize: 15, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: '0 4px 20px rgba(255,255,255,0.2)',
+            }}
+          >
+            Next: Hydration <ChevronRight size={18} />
+          </motion.button>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // ── Wizard Step 3: Sun, Skin & Hydration ───────────────────────────────────
+  const renderHydrationStep = () => (
+    <motion.div key="hydration" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit"
+      transition={{ type: 'spring', damping: 26, stiffness: 220 }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 18, background: 'rgba(56,189,248,0.15)',
+          border: '1px solid rgba(56,189,248,0.3)', display: 'inline-flex',
+          alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+        }}>
+          <Droplets size={28} color="#38BDF8" />
+        </div>
+        <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Step 3: Sun & Hydration</h1>
+        <p style={{ fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
+          Fine-tunes UV vulnerability and water replenishment target.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14 }}>
+          {['1. Body', '2. Diseases', '3. Hydration'].map((s, i) => (
+            <motion.div key={s}
+              animate={{ width: i === 2 ? 32 : 10, background: i === 2 ? '#38BDF8' : 'rgba(255,255,255,0.2)' }}
+              style={{ height: 6, borderRadius: 3 }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <GlassCard elevation="hero">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* Skin type grid */}
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
               Skin Type (Fitzpatrick Scale)
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -639,93 +936,21 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
                   onClick={() => setSkinType(st.id)}
                   type="button"
                   style={{
-                    padding: '12px 8px', borderRadius: 14, cursor: 'pointer',
+                    padding: '10px 6px', borderRadius: 12, cursor: 'pointer',
                     background: skinType === st.id ? `${st.color}22` : 'rgba(255,255,255,0.04)',
                     border: `2px solid ${skinType === st.id ? st.color : 'rgba(255,255,255,0.1)'}`,
-                    transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                    transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   }}
                 >
                   <div style={{
-                    width: 28, height: 28, borderRadius: '50%', background: st.color,
-                    boxShadow: skinType === st.id ? `0 0 12px ${st.color}99` : 'none',
+                    width: 24, height: 24, borderRadius: '50%', background: st.color,
+                    boxShadow: skinType === st.id ? `0 0 10px ${st.color}99` : 'none',
                   }} />
-                  <span style={{ fontSize: 11, fontWeight: 800, color: skinType === st.id ? '#FFF' : '#64748B' }}>{st.label}</span>
-                  <span style={{ fontSize: 9, color: '#52525B', textAlign: 'center', lineHeight: 1.3 }}>{st.desc}</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: skinType === st.id ? '#FFF' : '#64748B' }}>{st.label}</span>
                 </motion.button>
               ))}
             </div>
           </div>
-
-          {/* Sun sensitivity */}
-          <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-              Sun Sensitivity
-            </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {([
-                { val: 'very_sensitive', label: '🔥 Very Sensitive' },
-                { val: 'moderate', label: '☀️ Moderate' },
-                { val: 'resistant', label: '🌤️ Resistant' },
-              ] as const).map(({ val, label }) => (
-                <ChipToggle key={val} label={label} active={sunSensitivity === val} onToggle={() => setSunSensitivity(val)} />
-              ))}
-            </div>
-          </div>
-
-          {/* Sun exposure slider */}
-          <GlassSlider
-            label="Daily Sun Exposure"
-            value={sunHours} min={0} max={12} step={0.5}
-            onChange={setSunHours} unit="hrs/day"
-          />
-        </div>
-      </GlassCard>
-
-      <motion.button
-        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }}
-        onClick={handleSkinNext} type="button"
-        style={{
-          width: '100%', marginTop: 18, padding: '14px', borderRadius: 16,
-          background: '#FFFFFF', border: 'none', color: '#000',
-          fontWeight: 800, fontSize: 15, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          boxShadow: '0 4px 20px rgba(255,255,255,0.2)',
-        }}
-      >
-        Next <ChevronRight size={18} />
-      </motion.button>
-    </motion.div>
-  );
-
-  // ── Wizard Step B: Hydration ───────────────────────────────────────────────
-  const renderHydrationStep = () => (
-    <motion.div key="hydration" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit"
-      transition={{ type: 'spring', damping: 26, stiffness: 220 }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{
-          width: 56, height: 56, borderRadius: 18, background: 'rgba(56,189,248,0.15)',
-          border: '1px solid rgba(56,189,248,0.3)', display: 'inline-flex',
-          alignItems: 'center', justifyContent: 'center', marginBottom: 10,
-        }}>
-          <Droplets size={28} color="#38BDF8" />
-        </div>
-        <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Hydration Profile</h1>
-        <p style={{ fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
-          Tracks your water needs and body hydration status.
-        </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14 }}>
-          {['Sun & Skin', 'Hydration'].map((s, i) => (
-            <motion.div key={s}
-              animate={{ width: i === 1 ? 32 : 10, background: i === 1 ? '#38BDF8' : 'rgba(255,255,255,0.3)' }}
-              style={{ height: 6, borderRadius: 3 }}
-            />
-          ))}
-        </div>
-      </div>
-
-      <GlassCard elevation="hero">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
 
           {/* Daily water goal slider */}
           <GlassSlider
@@ -750,30 +975,6 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
             </div>
           </div>
 
-          {/* Avg daily water intake */}
-          <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-              Avg. Daily Water Intake
-            </p>
-            <GlassInput
-              type="number" placeholder="e.g. 2000"
-              value={waterIntake} onChange={setWaterIntake} icon={Droplets}
-            />
-            <p style={{ fontSize: 11, color: '#52525B', marginTop: 4 }}>millilitres per day</p>
-          </div>
-
-          {/* Body water % */}
-          <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-              Body Water Content % <span style={{ fontWeight: 400, textTransform: 'none', fontSize: 11 }}>(optional)</span>
-            </p>
-            <GlassInput
-              type="number" placeholder="e.g. 60"
-              value={bodyWater} onChange={setBodyWater}
-            />
-            <p style={{ fontSize: 11, color: '#52525B', marginTop: 4 }}>Typical range: 45–75%</p>
-          </div>
-
           {/* Sweat rate */}
           <div>
             <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
@@ -796,7 +997,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setWizardStep('skin')} type="button"
+          onClick={() => setWizardStep('diseases')} type="button"
           style={{
             flex: 1, padding: '14px', borderRadius: 16,
             background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
@@ -828,7 +1029,8 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       <div style={{ maxWidth: 440, margin: '0 auto', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <AnimatePresence mode="wait">
           {wizardStep === null && renderAuthForm()}
-          {wizardStep === 'skin' && renderSkinStep()}
+          {wizardStep === 'body' && renderBodyStep()}
+          {wizardStep === 'diseases' && renderDiseasesStep()}
           {wizardStep === 'hydration' && renderHydrationStep()}
         </AnimatePresence>
       </div>
