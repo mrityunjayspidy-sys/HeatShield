@@ -238,7 +238,11 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       const { user, error: authErr } = await signUpWithEmail(email, password);
       setAuthLoading(false);
       if (authErr || !user) {
-        setError(authErr ?? 'Sign up failed. Please try again.');
+        if (authErr?.toLowerCase().includes('rate limit')) {
+          setError('Supabase Email Rate Limit Exceeded (3 sign-ups/hr limit on free tier). Switch to "Sign In" tab if you already registered, or use ⚡ Auto-fill Test Credentials.');
+        } else {
+          setError(authErr ?? 'Sign up failed. Please try again.');
+        }
         return;
       }
       const session: UserSession = {
