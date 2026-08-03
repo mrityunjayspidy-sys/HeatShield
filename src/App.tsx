@@ -68,16 +68,26 @@ export default function App() {
     }
   };
 
-  // ── Native Android Back Button & App Resume Lifecycle Handler ──
+  // ── Bulletproof History Trap & Back Button Interceptor ──
   useEffect(() => {
-    // 1. Reset to Home tab whenever app is opened/resumed
-    const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
-        setTab('home');
-      }
-    });
+    // Push dummy history entry so Android WebView never exits on back press without JS control
+    window.history.pushState({ page: 'heatwatch' }, '', window.location.href);
 
-    // 2. Intercept native hardware back button on Android
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      // Re-push history entry so back button can be trapped again
+      window.history.pushState({ page: 'heatwatch' }, '', window.location.href);
+
+      if (tab !== 'home') {
+        setTab('home');
+      } else {
+        setShowExitModal(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Capacitor native back button listener
     const backButtonListener = CapacitorApp.addListener('backButton', () => {
       if (tab !== 'home') {
         setTab('home');
@@ -86,9 +96,27 @@ export default function App() {
       }
     });
 
+    // App resume listener — ALWAYS reset tab to 'home' when app is opened/resumed
+    const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        setTab('home');
+        setShowExitModal(false);
+      }
+    });
+
+    // Also listen to visibilitychange for web/PWA resumes
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setTab('home');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
-      appStateListener.then((h) => h.remove());
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       backButtonListener.then((h) => h.remove());
+      appStateListener.then((h) => h.remove());
     };
   }, [tab]);
 
