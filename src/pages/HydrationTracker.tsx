@@ -25,7 +25,7 @@ export function HydrationTracker() {
 
   return (
     <AnimatedGradientBackground tier="safe">
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px 40px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px calc(60px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Droplets size={22} color="#FFFFFF" />
           <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Hydration Tracker</h1>

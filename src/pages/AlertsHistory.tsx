@@ -353,10 +353,10 @@ export function AlertsHistory({ userSession, weather }: AlertsHistoryProps) {
         </div>
 
         {/* Timeline */}
-        <div style={{ position: 'relative', paddingLeft: 24 }}>
+        <div style={{ position: 'relative', paddingLeft: 22 }}>
           {/* Vertical line */}
           <div style={{
-            position: 'absolute', left: 7, top: 0, bottom: 0, width: 2,
+            position: 'absolute', left: 5, top: 0, bottom: 0, width: 2,
             background: 'linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0.05))',
           }} />
 
@@ -368,16 +368,16 @@ export function AlertsHistory({ userSession, weather }: AlertsHistoryProps) {
                   key={alert.id}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06 }}
+                  transition={{ delay: i * 0.05 }}
                   style={{ marginBottom: 16, position: 'relative' }}
                 >
                   {/* Timeline dot */}
                   <div style={{
-                    position: 'absolute', left: -21, top: 22, width: 12, height: 12, borderRadius: '50%',
+                    position: 'absolute', left: -22, top: 22, width: 12, height: 12, borderRadius: '50%',
                     background: color.bg, boxShadow: `0 0 10px ${color.glow}`,
                   }} />
 
-                  <GlassCard style={{ borderLeft: `3px solid ${color.bg}`, opacity: alert.acknowledged ? 0.6 : 1 }}>
+                  <GlassCard style={{ borderLeft: `3px solid ${color.bg}`, opacity: alert.acknowledged ? 0.6 : 1, userSelect: 'none' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: color.bg, marginBottom: 6 }}>
                         {iconForAlert(alert)}

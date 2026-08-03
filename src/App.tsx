@@ -200,8 +200,8 @@ export default function App() {
           initial="initial"
           animate="in"
           exit="out"
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          style={{ paddingBottom: 100 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom))' }}
         >
           {tab === 'home' && <Dashboard userSession={activeSession} tempUnit={tempUnit} />}
           {tab === 'alerts' && <AlertsHistory userSession={activeSession} weather={weather} />}

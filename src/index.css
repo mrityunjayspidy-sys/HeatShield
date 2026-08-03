@@ -5,6 +5,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body, #root {
@@ -15,6 +16,18 @@ html, body, #root {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Disable unwanted touch text selection during scrolling */
+body, button, .glass-card, .dock-outer, .dock-panel {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Scrollbar styling for glass aesthetic */
@@ -37,3 +50,4 @@ html, body, #root {
     transition-duration: 0.01ms !important;
   }
 }
+

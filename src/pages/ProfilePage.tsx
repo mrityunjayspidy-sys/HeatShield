@@ -173,46 +173,46 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
             Biometric Data
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 10, color: '#A1A1AA' }}>Age</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 6 }}>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: '10px 4px', borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA', fontWeight: 600 }}>Age</div>
               {isEditing ? (
                 <input
                   type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })}
-                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 14 }}
+                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 13 }}
                 />
               ) : (
-                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.age} yrs</div>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', marginTop: 4, whiteSpace: 'nowrap' }}>{form.age} yrs</div>
               )}
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 10, color: '#A1A1AA' }}>Height</div>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: '10px 4px', borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA', fontWeight: 600 }}>Height</div>
               {isEditing ? (
                 <input
                   type="number" value={form.heightCm} onChange={(e) => setForm({ ...form, heightCm: e.target.value })}
-                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 14 }}
+                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 13 }}
                 />
               ) : (
-                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.heightCm} cm</div>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', marginTop: 4, whiteSpace: 'nowrap' }}>{form.heightCm} cm</div>
               )}
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 10, color: '#A1A1AA' }}>Weight</div>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: '10px 4px', borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA', fontWeight: 600 }}>Weight</div>
               {isEditing ? (
                 <input
                   type="number" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })}
-                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 14 }}
+                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 13 }}
                 />
               ) : (
-                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.weightKg} kg</div>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', marginTop: 4, whiteSpace: 'nowrap' }}>{form.weightKg} kg</div>
               )}
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 10, color: '#A1A1AA' }}>BMI</div>
-              <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{bmi}</div>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: '10px 4px', borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA', fontWeight: 600 }}>BMI</div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', marginTop: 4, whiteSpace: 'nowrap' }}>{bmi}</div>
             </div>
           </div>
         </GlassCard>
