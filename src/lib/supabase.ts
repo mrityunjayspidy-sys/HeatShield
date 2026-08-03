@@ -216,49 +216,65 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
  * Falls back to localStorage cache if offline.
  */
 export async function fetchProfile(userId: string): Promise<UserProfile | null> {
-  if (!isSupabaseConfigured) return getCachedProfile();
+  if (!isSupabaseConfigured) {
+    const cached = getCachedProfile();
+    return cached?.id === userId ? cached : null;
+  }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
 
-  if (error || !data) return getCachedProfile();
+    if (error) {
+      console.warn('Supabase fetchProfile note:', error.message);
+    }
 
-  const profile: UserProfile = {
-    id:                    data.id,
-    email:                 data.email,
-    name:                  data.name,
-    gender:                data.gender,
-    age:                   data.age,
-    weightKg:              data.weight_kg,
-    heightCm:              data.height_cm,
-    conditions:            data.conditions ?? [],
-    medications:           data.medications,
-    outdoor:               data.outdoor,
-    bloodPressure:         data.blood_pressure,
-    restingHeartRate:      data.resting_heart_rate,
-    sweatRate:             data.sweat_rate,
-    pastHeatStrokeHistory: data.past_heat_stroke,
-    acclimatizationDays:   data.acclimatization_days,
-    dailyWaterGoalMl:      data.daily_water_goal_ml,
-    skinType:              data.skin_type,
-    sunSensitivity:        data.sun_sensitivity,
-    sunExposureHoursPerDay:data.sun_exposure_hours,
-    currentHydrationLevel: data.hydration_level,
-    dailyWaterIntakeMl:    data.daily_water_intake_ml,
-    bodyWaterPercent:      data.body_water_percent,
-    emergencyContact: {
-      name:         data.emergency_contact_name  ?? 'Emergency Contact',
-      phone:        data.emergency_contact_phone ?? '',
-      relationship: data.emergency_contact_rel   ?? 'Contact',
-    },
-    createdAt: data.created_at,
-  };
+    if (!data) {
+      const cached = getCachedProfile();
+      return cached?.id === userId ? cached : null;
+    }
 
-  cacheProfile(profile);
-  return profile;
+    const profile: UserProfile = {
+      id:                    data.id,
+      email:                 data.email || '',
+      name:                  data.name || '',
+      gender:                data.gender,
+      age:                   data.age ?? 28,
+      weightKg:              data.weight_kg ?? 68,
+      heightCm:              data.height_cm ?? 170,
+      conditions:            data.conditions ?? [],
+      medications:           data.medications ?? false,
+      outdoor:               data.outdoor ?? false,
+      bloodPressure:         data.blood_pressure,
+      restingHeartRate:      data.resting_heart_rate,
+      sweatRate:             data.sweat_rate,
+      pastHeatStrokeHistory: data.past_heat_stroke,
+      acclimatizationDays:   data.acclimatization_days,
+      dailyWaterGoalMl:      data.daily_water_goal_ml,
+      skinType:              data.skin_type,
+      sunSensitivity:        data.sun_sensitivity,
+      sunExposureHoursPerDay:data.sun_exposure_hours,
+      currentHydrationLevel: data.hydration_level,
+      dailyWaterIntakeMl:    data.daily_water_intake_ml,
+      bodyWaterPercent:      data.body_water_percent,
+      emergencyContact: {
+        name:         data.emergency_contact_name  ?? 'Emergency Contact',
+        phone:        data.emergency_contact_phone ?? '',
+        relationship: data.emergency_contact_rel   ?? 'Contact',
+      },
+      createdAt: data.created_at || new Date().toISOString(),
+    };
+
+    cacheProfile(profile);
+    return profile;
+  } catch (e: unknown) {
+    console.warn('fetchProfile exception:', e);
+    const cached = getCachedProfile();
+    return cached?.id === userId ? cached : null;
+  }
 }
 
 // ── SQL for Supabase dashboard ────────────────────────────────────────────────
