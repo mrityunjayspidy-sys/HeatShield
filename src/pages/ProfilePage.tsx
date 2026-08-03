@@ -41,7 +41,10 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
     }));
   };
 
+  const [dbStatus, setDbStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   const handleSave = async () => {
+    setDbStatus(null);
     const updated: UserSession = {
       ...session,
       name: form.name,
@@ -58,10 +61,23 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
         phone: form.emergencyPhone,
       },
     };
-    await upsertProfile(updated);
+    const res = await upsertProfile(updated);
     saveUserSession(updated);
     onUpdateSession(updated);
     setIsEditing(false);
+
+    if (res.error) {
+      setDbStatus({
+        type: 'error',
+        message: `Database sync note: ${res.error}. Saved locally.`,
+      });
+    } else {
+      setDbStatus({
+        type: 'success',
+        message: 'Successfully saved and synced to Supabase Database!',
+      });
+      setTimeout(() => setDbStatus(null), 4000);
+    }
   };
 
   return (
@@ -88,6 +104,25 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
             <span>{isEditing ? 'Save' : 'Edit Profile'}</span>
           </motion.button>
         </div>
+
+        {/* Status Toast Banner */}
+        {dbStatus && (
+          <div style={{
+            padding: '12px 16px', borderRadius: 14, fontSize: 13, fontWeight: 700,
+            background: dbStatus.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+            border: `1.5px solid ${dbStatus.type === 'success' ? '#10B981' : '#EF4444'}`,
+            color: dbStatus.type === 'success' ? '#34D399' : '#FCA5A5',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span>{dbStatus.message}</span>
+            <button
+              onClick={() => setDbStatus(null)}
+              style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', fontWeight: 900 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Profile Card Header */}
         <GlassCard elevation="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12 }}>
