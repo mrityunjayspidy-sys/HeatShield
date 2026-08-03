@@ -136,8 +136,25 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
             {form.name ? form.name.charAt(0).toUpperCase() : 'U'}
           </div>
 
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#FFF' }}>{form.name}</div>
+          <div style={{ width: '100%' }}>
+            {isEditing ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <label style={{ fontSize: 10, color: '#A1A1AA', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Username</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Enter your name"
+                  style={{
+                    width: '80%', padding: '8px 14px', borderRadius: 10,
+                    background: 'rgba(255,255,255,0.08)', border: '1.5px solid rgba(255,255,255,0.3)',
+                    color: '#FFF', fontSize: 16, fontWeight: 800, textAlign: 'center', outline: 'none',
+                  }}
+                />
+              </div>
+            ) : (
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#FFF' }}>{form.name}</div>
+            )}
             <div style={{ fontSize: 13, color: '#A1A1AA', marginTop: 2 }}>{form.email}</div>
           </div>
 

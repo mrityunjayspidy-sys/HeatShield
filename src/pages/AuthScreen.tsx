@@ -269,8 +269,17 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       sweatRate,
       currentHydrationLevel: hydrationLevel,
     };
-    // Persist to Supabase (or localStorage fallback)
-    await upsertProfile(full);
+    // Persist to Supabase DB + localStorage cache
+    const result = await upsertProfile(full);
+    saveUserSession(full);
+
+    if (result.error) {
+      console.error('⚠️ Profile DB save error during registration:', result.error);
+      // Still proceed — data is cached locally and will sync on next save
+    } else {
+      console.log('✅ Profile saved to Supabase DB successfully');
+    }
+
     onAuthenticated(full);
   };
 

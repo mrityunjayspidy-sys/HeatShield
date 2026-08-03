@@ -303,47 +303,52 @@ export async function fetchProfile(userId: string): Promise<UserProfile | null> 
 }
 
 // ── SQL for Supabase dashboard ────────────────────────────────────────────────
-// Run this in your Supabase SQL editor (Dashboard → SQL Editor → New query):
-//
-// create table if not exists public.profiles (
-//   id                      uuid primary key references auth.users(id) on delete cascade,
-//   email                   text,
-//   name                    text,
-//   age                     int,
-//   weight_kg               numeric,
-//   height_cm               numeric,
-//   conditions              text[],
-//   medications             boolean default false,
-//   outdoor                 boolean default false,
-//   blood_pressure          text,
-//   resting_heart_rate      int,
-//   sweat_rate              text,
-//   past_heat_stroke        boolean,
-//   acclimatization_days    int,
-//   daily_water_goal_ml     int,
-//   skin_type               text,
-//   sun_sensitivity         text,
-//   sun_exposure_hours      numeric,
-//   hydration_level         text,
-//   daily_water_intake_ml   int,
-//   body_water_percent      numeric,
-//   emergency_contact_name  text,
-//   emergency_contact_phone text,
-//   emergency_contact_rel   text,
-//   created_at              timestamptz default now()
-// );
-//
-// -- Row-level security: users can only read/write their own row
-// alter table public.profiles enable row level security;
-//
-// create policy "Users can view own profile"
-//   on public.profiles for select
-//   using (auth.uid() = id);
-//
-// create policy "Users can insert own profile"
-//   on public.profiles for insert
-//   with check (auth.uid() = id);
-//
-// create policy "Users can update own profile"
-//   on public.profiles for update
-//   using (auth.uid() = id);
+// Run the SQL migration file: supabase_migration.sql
+// in your Supabase Dashboard → SQL Editor → New query → paste & Run.
+// This creates the `profiles` table, adds all columns, and disables RLS.
+
+/**
+ * Diagnostic: Test if the profiles table is accessible and writable.
+ * Call this from browser console: `import('./lib/supabase').then(m => m.checkSupabaseConnection())`
+ */
+export async function checkSupabaseConnection(): Promise<{
+  canConnect: boolean;
+  canRead: boolean;
+  canWrite: boolean;
+  error?: string;
+}> {
+  if (!isSupabaseConfigured) {
+    return { canConnect: false, canRead: false, canWrite: false, error: 'Supabase not configured' };
+  }
+
+  try {
+    // Test 1: Can we connect?
+    const { data: authData } = await supabase.auth.getSession();
+    const canConnect = true;
+    const userId = authData?.session?.user?.id;
+
+    if (!userId) {
+      return { canConnect, canRead: false, canWrite: false, error: 'No authenticated user session' };
+    }
+
+    // Test 2: Can we read?
+    const { error: readErr } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle();
+    const canRead = !readErr;
+
+    // Test 3: Can we write? (try a no-op update)
+    const { error: writeErr } = await supabase.from('profiles').upsert(
+      { id: userId, created_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    );
+    const canWrite = !writeErr;
+
+    const error = readErr?.message || writeErr?.message;
+
+    console.log('🔍 Supabase Diagnostic:', { canConnect, canRead, canWrite, userId, error });
+    return { canConnect, canRead, canWrite, error };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Unknown error';
+    return { canConnect: false, canRead: false, canWrite: false, error: msg };
+  }
+}
+

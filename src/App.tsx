@@ -204,7 +204,7 @@ export default function App() {
           style={{ paddingBottom: 100 }}
         >
           {tab === 'home' && <Dashboard userSession={activeSession} tempUnit={tempUnit} />}
-          {tab === 'alerts' && <AlertsHistory />}
+          {tab === 'alerts' && <AlertsHistory userSession={activeSession} weather={weather} />}
           {tab === 'hydration' && <HydrationTracker />}
           {tab === 'work' && (
             <YourWorkPage
