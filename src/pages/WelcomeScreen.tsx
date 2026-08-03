@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight, Sun, Activity, Droplets } from 'lucide-react';
+import { ArrowRight, Sun, Activity, Droplets } from 'lucide-react';
 import SideRays from '../components/ui/SideRays';
 import BlurText from '../components/ui/BlurText';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -56,41 +56,43 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           margin: 'auto 0',
         }}
       >
-        {/* Animated App Icon */}
+        {/* Brand Logo */}
         <motion.div
-          animate={{ scale: [1, 1.06, 1], rotate: [0, 2, -2, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            width: 76,
-            height: 76,
-            borderRadius: 24,
-            background: 'rgba(255, 255, 255, 0.1)',
+            width: 110,
+            height: 110,
+            borderRadius: 28,
+            background: 'rgba(255, 255, 255, 0.08)',
             backdropFilter: 'blur(20px)',
             border: '1.5px solid rgba(255, 255, 255, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 12px 32px rgba(255, 255, 255, 0.15)',
+            overflow: 'hidden',
+            padding: 8,
           }}
         >
-          <Shield size={40} color="#FFFFFF" />
+          <img src="/logo.png" alt="HeatShield Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </motion.div>
 
         {/* BlurText Title & Subtitle */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <BlurText
-            text="Welcome to HeatWatch"
+            text="Welcome to HeatShield"
             delay={120}
             animateBy="words"
             direction="top"
             className="text-3xl font-black text-white justify-center tracking-tight"
           />
           <BlurText
-            text="Personalized Heat Risk & Hydration Intelligence"
+            text="STAY AWARE. STAY SAFE. STAY COOL."
             delay={80}
             animateBy="words"
             direction="bottom"
-            className="text-sm font-medium text-zinc-400 justify-center max-w-xs leading-relaxed"
+            className="text-xs font-bold text-zinc-400 justify-center max-w-xs tracking-wider"
           />
         </div>
 
