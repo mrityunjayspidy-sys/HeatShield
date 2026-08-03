@@ -143,8 +143,10 @@ export async function sendPasswordReset(email: string): Promise<{ error: string 
  * The table must exist in your Supabase project — see SQL below.
  */
 export async function upsertProfile(profile: UserProfile): Promise<{ error: string | null }> {
+  // Always update local cache immediately so data is never lost
+  cacheProfile(profile);
+
   if (!isSupabaseConfigured) {
-    cacheProfile(profile);
     return { error: null };
   }
 
@@ -172,15 +174,24 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
     hydration_level:         profile.currentHydrationLevel,
     daily_water_intake_ml:   profile.dailyWaterIntakeMl,
     body_water_percent:      profile.bodyWaterPercent,
-    emergency_contact_name:  profile.emergencyContact.name,
-    emergency_contact_phone: profile.emergencyContact.phone,
-    emergency_contact_rel:   profile.emergencyContact.relationship,
-    created_at:              profile.createdAt,
+    emergency_contact_name:  profile.emergencyContact?.name ?? 'Emergency Contact',
+    emergency_contact_phone: profile.emergencyContact?.phone ?? '',
+    emergency_contact_rel:   profile.emergencyContact?.relationship ?? 'Contact',
+    created_at:              profile.createdAt || new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-  if (!error) cacheProfile(profile);
-  return { error: error ? error.message : null };
+  try {
+    const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
+    if (error) {
+      console.warn('Supabase DB Sync Warning:', error.message);
+      return { error: error.message };
+    }
+    return { error: null };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Database error';
+    console.warn('Supabase upsert error:', msg);
+    return { error: msg };
+  }
 }
 
 /**
