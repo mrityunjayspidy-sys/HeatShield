@@ -150,52 +150,72 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
     return { error: null };
   }
 
-  // Flatten emergencyContact for DB storage
-  const row = {
+  // Build clean DB row (ensuring NO `undefined` values are sent to Supabase PostgREST)
+  const rawRow: Record<string, unknown> = {
     id:                      profile.id,
-    email:                   profile.email,
-    name:                    profile.name,
-    gender:                  profile.gender,
-    age:                     profile.age,
-    weight_kg:               profile.weightKg,
-    height_cm:               profile.heightCm,
-    conditions:              profile.conditions,
-    medications:             profile.medications,
-    outdoor:                 profile.outdoor,
-    blood_pressure:          profile.bloodPressure,
-    resting_heart_rate:      profile.restingHeartRate,
-    sweat_rate:              profile.sweatRate,
-    past_heat_stroke:        profile.pastHeatStrokeHistory,
-    acclimatization_days:    profile.acclimatizationDays,
-    daily_water_goal_ml:     profile.dailyWaterGoalMl,
-    skin_type:               profile.skinType,
-    sun_sensitivity:         profile.sunSensitivity,
-    sun_exposure_hours:      profile.sunExposureHoursPerDay,
-    hydration_level:         profile.currentHydrationLevel,
-    daily_water_intake_ml:   profile.dailyWaterIntakeMl,
-    body_water_percent:      profile.bodyWaterPercent,
-    emergency_contact_name:  profile.emergencyContact?.name ?? 'Emergency Contact',
-    emergency_contact_phone: profile.emergencyContact?.phone ?? '',
-    emergency_contact_rel:   profile.emergencyContact?.relationship ?? 'Contact',
+    email:                   profile.email || '',
+    name:                    profile.name || '',
+    gender:                  profile.gender || 'male',
+    age:                     profile.age ?? 28,
+    weight_kg:               profile.weightKg ?? 68,
+    height_cm:               profile.heightCm ?? 170,
+    conditions:              profile.conditions ?? [],
+    medications:             profile.medications ?? false,
+    outdoor:                 profile.outdoor ?? false,
+    blood_pressure:          profile.bloodPressure || null,
+    resting_heart_rate:      profile.restingHeartRate || null,
+    sweat_rate:              profile.sweatRate || 'normal',
+    past_heat_stroke:        profile.pastHeatStrokeHistory ?? false,
+    acclimatization_days:    profile.acclimatizationDays || 0,
+    daily_water_goal_ml:     profile.dailyWaterGoalMl ?? 2500,
+    skin_type:               profile.skinType || 'III',
+    sun_sensitivity:         profile.sunSensitivity || 'moderate',
+    sun_exposure_hours:      profile.sunExposureHoursPerDay ?? 4,
+    hydration_level:         profile.currentHydrationLevel || 'normal',
+    daily_water_intake_ml:   profile.dailyWaterIntakeMl ?? 2000,
+    body_water_percent:      profile.bodyWaterPercent ?? 60,
+    emergency_contact_name:  profile.emergencyContact?.name || 'Primary Contact',
+    emergency_contact_phone: profile.emergencyContact?.phone || '',
+    emergency_contact_rel:   profile.emergencyContact?.relationship || 'Contact',
     created_at:              profile.createdAt || new Date().toISOString(),
   };
 
+  // Remove any remaining undefined keys
+  const cleanRow = Object.fromEntries(
+    Object.entries(rawRow).filter(([_, v]) => v !== undefined)
+  );
+
   try {
-    const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-    if (!error) return { error: null };
+    // Stage 1: Try UPSERT
+    const { error: upsertErr } = await supabase.from('profiles').upsert(cleanRow, { onConflict: 'id' });
+    if (!upsertErr) return { error: null };
 
-    console.warn('Supabase full upsert warning:', error.message);
+    console.warn('Stage 1 Upsert Note:', upsertErr.message);
 
-    // Fallback 1: Explicit UPDATE query for existing user record
+    // Stage 2: Try UPDATE
     const { error: updateErr } = await supabase
       .from('profiles')
-      .update(row)
+      .update(cleanRow)
       .eq('id', profile.id);
 
     if (!updateErr) return { error: null };
 
-    // Fallback 2: Core basic columns update
+    console.warn('Stage 2 Update Note:', updateErr.message);
+
+    // Stage 3: Try INSERT
+    const { error: insertErr } = await supabase
+      .from('profiles')
+      .insert(cleanRow);
+
+    if (!insertErr) return { error: null };
+
+    console.error('Stage 3 Insert Failed:', insertErr.message);
+
+    // Stage 4: Basic core columns fallback
     const basicRow = {
+      id:          profile.id,
+      email:       profile.email,
+      name:        profile.name,
       age:         profile.age,
       weight_kg:   profile.weightKg,
       height_cm:   profile.heightCm,
@@ -203,18 +223,15 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
       medications: profile.medications,
     };
 
-    const { error: basicErr } = await supabase
-      .from('profiles')
-      .update(basicRow)
-      .eq('id', profile.id);
-
+    const { error: basicErr } = await supabase.from('profiles').upsert(basicRow, { onConflict: 'id' });
     if (!basicErr) return { error: null };
 
-    console.warn('Supabase profile save error:', error.message || updateErr?.message || basicErr?.message);
-    return { error: error.message || updateErr?.message || basicErr?.message || 'Database update rejected by Supabase RLS' };
+    const finalErrMsg = upsertErr.message || updateErr.message || insertErr.message || basicErr.message;
+    console.error('Supabase Profile Save Error:', finalErrMsg);
+    return { error: finalErrMsg };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Database error';
-    console.warn('Supabase upsert exception:', msg);
+    console.error('Supabase upsert exception:', msg);
     return { error: msg };
   }
 }
