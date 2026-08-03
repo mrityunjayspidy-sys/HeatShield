@@ -22,6 +22,23 @@ export interface LiveWeatherData {
   hourlyTrend: { hour: string; tempC: number; score?: number }[];
 }
 
+const WEATHER_CACHE_KEY = 'heatwatch_cached_weather';
+
+export function getCachedWeather(): LiveWeatherData | null {
+  try {
+    const raw = localStorage.getItem(WEATHER_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function cacheWeather(w: LiveWeatherData): void {
+  try {
+    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(w));
+  } catch {}
+}
+
 /**
  * Maps WMO weather codes to our WeatherCondition enum.
  * https://open-meteo.com/en/docs#weathervariables

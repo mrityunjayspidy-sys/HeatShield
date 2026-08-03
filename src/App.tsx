@@ -13,7 +13,7 @@ import { DailyCheckInScreen, getTodayCheckIn, getTodayKey, type DailyCheckIn } f
 import { YourWorkPage } from './pages/YourWork';
 import Dock, { type DockItemData } from './components/ui/Dock';
 import { supabase, getCachedProfile, cacheProfile, signOut, fetchProfile, type UserSession } from './lib/supabase';
-import { fetchLiveWeather, type LiveWeatherData } from './lib/weather';
+import { fetchLiveWeather, getCachedWeather, cacheWeather, type LiveWeatherData } from './lib/weather';
 import { getCurrentCoordinates } from './lib/location';
 
 type Tab = 'home' | 'alerts' | 'hydration' | 'profile' | 'settings' | 'work';
@@ -42,14 +42,32 @@ export default function App() {
   });
   const [tab, setTab] = useState<Tab>('home');
 
+  // Single global weather state initialized with instant local cache
+  const [weather, setWeather] = useState<LiveWeatherData | null>(() => getCachedWeather());
+  const [loadingWeather, setLoadingWeather] = useState<boolean>(false);
+
+  const loadWeather = async (customCoords?: { latitude: number; longitude: number; cityName?: string }) => {
+    setLoadingWeather(true);
+    try {
+      const coords = customCoords || await getCurrentCoordinates();
+      const data = await fetchLiveWeather(coords.latitude, coords.longitude);
+      if (customCoords?.cityName) {
+        data.cityName = customCoords.cityName;
+      }
+      cacheWeather(data);
+      setWeather(data);
+    } catch (e) {
+      console.warn('Weather load note:', e);
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
   // ── Supabase auth state listener ───────────────────────────────────────
-  // This fires on every page load if a valid Supabase session exists in storage,
-  // restoring the user without requiring a re-login.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
-          // Try to load the saved profile from DB or cache
           const profile = await fetchProfile(session.user.id);
           if (profile) {
             cacheProfile(profile);
@@ -63,7 +81,6 @@ export default function App() {
           setOnboarded(false);
         }
         if (event === 'PASSWORD_RECOVERY') {
-          // Supabase redirects here after reset — send to sign-in
           setOnboarded(false);
         }
       }
@@ -75,29 +92,20 @@ export default function App() {
   const [showDailyCheckIn, setShowDailyCheckIn] = useState<boolean>(false);
   const [dailyCheckIn, setDailyCheckIn] = useState<DailyCheckIn | null>(() => getTodayCheckIn());
 
-  // Shared weather data (fetched once, passed to YourWork)
-  const [weather, setWeather] = useState<LiveWeatherData | null>(null);
-
-  // After auth/onboarding completes, decide if we need to show the daily check-in
   useEffect(() => {
-    if (!onboarded) return; // not logged in yet
-
+    if (!onboarded) return;
     const shownDate = localStorage.getItem(CHECKIN_SHOWN_KEY);
     const today = getTodayKey();
-
     if (shownDate !== today) {
-      // First open of the day — show check-in
       setShowDailyCheckIn(true);
     }
   }, [onboarded]);
 
-  // Fetch shared weather for YourWork page
+  // Load weather once on app startup (or use instant cached weather)
   useEffect(() => {
-    if (!onboarded) return;
-    getCurrentCoordinates()
-      .then((c) => fetchLiveWeather(c.latitude, c.longitude))
-      .then(setWeather)
-      .catch(() => {});
+    if (onboarded) {
+      loadWeather();
+    }
   }, [onboarded]);
 
   const handleStartWelcome = () => {
@@ -203,7 +211,16 @@ export default function App() {
           transition={{ duration: 0.2, ease: 'easeOut' }}
           style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom))' }}
         >
-          {tab === 'home' && <Dashboard userSession={activeSession} tempUnit={tempUnit} />}
+          {tab === 'home' && (
+            <Dashboard
+              userSession={activeSession}
+              tempUnit={tempUnit}
+              weather={weather}
+              loadingWeather={loadingWeather}
+              onRefreshWeather={() => loadWeather()}
+              onSelectLocation={(r) => loadWeather({ latitude: r.latitude, longitude: r.longitude, cityName: r.displayName })}
+            />
+          )}
           {tab === 'alerts' && <AlertsHistory userSession={activeSession} weather={weather} />}
           {tab === 'hydration' && <HydrationTracker />}
           {tab === 'work' && (

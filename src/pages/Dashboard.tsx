@@ -11,8 +11,7 @@ import { ScoreGauge } from '../components/ScoreGauge';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import type { ScoringResult, ScoringInput } from '../lib/scoring';
 import { computeHeatScore, TIER_COLORS } from '../lib/scoring';
-import { fetchLiveWeather, type LiveWeatherData, searchCity, type GeoSearchResult, conditionLabel } from '../lib/weather';
-import { getCurrentCoordinates } from '../lib/location';
+import { type LiveWeatherData, searchCity, type GeoSearchResult, conditionLabel } from '../lib/weather';
 import type { UserSession } from '../lib/supabase';
 import { predictMedicalConditions } from '../lib/medicalPrediction';
 import { MedicalPredictionCard } from '../components/MedicalPredictionCard';
@@ -24,6 +23,10 @@ import { HydrationReminder } from '../components/HydrationReminder';
 interface DashboardProps {
   userSession?: UserSession;
   tempUnit?: 'C' | 'F';
+  weather: LiveWeatherData | null;
+  loadingWeather?: boolean;
+  onRefreshWeather?: () => void;
+  onSelectLocation?: (result: GeoSearchResult) => void;
 }
 
 // Default clean user profile fallback
@@ -38,9 +41,14 @@ const DEFAULT_HEALTH_PROFILE = {
   sunExposureLevel: 'moderate' as const,
 };
 
-export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
-  const [weather, setWeather] = useState<LiveWeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
+export function Dashboard({
+  userSession,
+  tempUnit = 'C',
+  weather,
+  loadingWeather = false,
+  onRefreshWeather,
+  onSelectLocation,
+}: DashboardProps) {
   const [selectedFactor, setSelectedFactor] = useState<ScoringResult['factors'][0] | null>(null);
   const [hydrationMl, setHydrationMl] = useState(1750);
   const [showHydrationFab, setShowHydrationFab] = useState(false);
@@ -50,27 +58,13 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
   const [locationQuery, setLocationQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GeoSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [isCustomLocation, setIsCustomLocation] = useState(false);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadRealtimeWeather = async () => {
-    setLoading(true);
-    setIsCustomLocation(false);
-    const coords = await getCurrentCoordinates();
-    const liveData = await fetchLiveWeather(coords.latitude, coords.longitude);
-    setWeather(liveData);
-    setLoading(false);
-  };
-
-  const loadWeatherForLocation = async (result: GeoSearchResult) => {
-    setLoading(true);
+  const handleSelectCity = (result: GeoSearchResult) => {
     setShowLocationSearch(false);
     setLocationQuery('');
     setSearchResults([]);
-    setIsCustomLocation(true);
-    const liveData = await fetchLiveWeather(result.latitude, result.longitude);
-    setWeather({ ...liveData, cityName: result.displayName });
-    setLoading(false);
+    onSelectLocation?.(result);
   };
 
   // Debounced city search
@@ -84,10 +78,6 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
       setSearchLoading(false);
     }, 420);
   }, [locationQuery]);
-
-  useEffect(() => {
-    loadRealtimeWeather();
-  }, []);
 
   // Compute live score using real-time API weather data + real user profile
   const currentTemp = weather ? weather.tempC : 38.5;
@@ -172,12 +162,12 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
               <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>HeatWatch</h1>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12,
-                background: isCustomLocation ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.12)',
-                border: `1px solid ${isCustomLocation ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.2)'}`,
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.2)',
                 fontSize: 10, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 0.5,
               }}>
-                {isCustomLocation ? <MapPin size={10} color="#A78BFA" /> : <Radio size={10} color="#FFFFFF" />}
-                {isCustomLocation ? 'Custom' : 'Live API'}
+                <Radio size={10} color="#FFFFFF" />
+                Live API
               </div>
             </div>
 
@@ -207,8 +197,8 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
             {/* Refresh / back to GPS */}
             <motion.button
               whileTap={{ scale: 0.88 }}
-              onClick={loadRealtimeWeather}
-              title={isCustomLocation ? 'Back to my location' : 'Refresh weather'}
+              onClick={onRefreshWeather}
+              title="Refresh weather"
               style={{
                 width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)',
@@ -216,7 +206,7 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
                 color: '#FFF',
               }}
             >
-              {isCustomLocation ? <Navigation size={16} /> : <RotateCw size={16} className={loading ? 'animate-spin' : ''} />}
+              <RotateCw size={16} className={loadingWeather ? 'animate-spin' : ''} />
             </motion.button>
           </div>
         </div>
@@ -284,7 +274,7 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
                         <motion.button
                           key={i}
                           whileTap={{ scale: 0.97 }}
-                          onClick={() => loadWeatherForLocation(r)}
+                          onClick={() => handleSelectCity(r)}
                           type="button"
                           style={{
                             display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
@@ -310,21 +300,19 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
                 </AnimatePresence>
 
                 {/* Back to GPS */}
-                {isCustomLocation && (
-                  <motion.button
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => { loadRealtimeWeather(); setShowLocationSearch(false); }}
-                    type="button"
-                    style={{
-                      marginTop: 12, width: '100%', padding: '10px', borderRadius: 12, fontSize: 12,
-                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-                      color: '#94A3B8', fontWeight: 700, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    }}
-                  >
-                    <Navigation size={13} /> Back to my GPS location
-                  </motion.button>
-                )}
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => { onRefreshWeather?.(); setShowLocationSearch(false); }}
+                  type="button"
+                  style={{
+                    marginTop: 12, width: '100%', padding: '10px', borderRadius: 12, fontSize: 12,
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#94A3B8', fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                >
+                  <Navigation size={13} /> Back to my GPS location
+                </motion.button>
               </GlassCard>
             </motion.div>
           )}
