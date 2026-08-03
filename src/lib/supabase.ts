@@ -186,11 +186,16 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
 
     console.warn('Supabase full upsert warning:', error.message);
 
-    // Fallback: Attempt upserting with core basic columns in case custom columns are missing in DB
+    // Fallback 1: Explicit UPDATE query for existing user record
+    const { error: updateErr } = await supabase
+      .from('profiles')
+      .update(row)
+      .eq('id', profile.id);
+
+    if (!updateErr) return { error: null };
+
+    // Fallback 2: Core basic columns update
     const basicRow = {
-      id:          profile.id,
-      email:       profile.email,
-      name:        profile.name,
       age:         profile.age,
       weight_kg:   profile.weightKg,
       height_cm:   profile.heightCm,
@@ -198,12 +203,15 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
       medications: profile.medications,
     };
 
-    const { error: basicErr } = await supabase.from('profiles').upsert(basicRow, { onConflict: 'id' });
-    if (basicErr) {
-      console.warn('Supabase basic upsert warning:', basicErr.message);
-      return { error: basicErr.message };
-    }
-    return { error: null };
+    const { error: basicErr } = await supabase
+      .from('profiles')
+      .update(basicRow)
+      .eq('id', profile.id);
+
+    if (!basicErr) return { error: null };
+
+    console.warn('Supabase profile save error:', error.message || updateErr?.message || basicErr?.message);
+    return { error: error.message || updateErr?.message || basicErr?.message || 'Database update rejected by Supabase RLS' };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Database error';
     console.warn('Supabase upsert exception:', msg);
