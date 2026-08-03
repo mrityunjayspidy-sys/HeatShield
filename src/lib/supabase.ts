@@ -182,14 +182,31 @@ export async function upsertProfile(profile: UserProfile): Promise<{ error: stri
 
   try {
     const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-    if (error) {
-      console.warn('Supabase DB Sync Warning:', error.message);
-      return { error: error.message };
+    if (!error) return { error: null };
+
+    console.warn('Supabase full upsert warning:', error.message);
+
+    // Fallback: Attempt upserting with core basic columns in case custom columns are missing in DB
+    const basicRow = {
+      id:          profile.id,
+      email:       profile.email,
+      name:        profile.name,
+      age:         profile.age,
+      weight_kg:   profile.weightKg,
+      height_cm:   profile.heightCm,
+      conditions:  profile.conditions,
+      medications: profile.medications,
+    };
+
+    const { error: basicErr } = await supabase.from('profiles').upsert(basicRow, { onConflict: 'id' });
+    if (basicErr) {
+      console.warn('Supabase basic upsert warning:', basicErr.message);
+      return { error: basicErr.message };
     }
     return { error: null };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Database error';
-    console.warn('Supabase upsert error:', msg);
+    console.warn('Supabase upsert exception:', msg);
     return { error: msg };
   }
 }
