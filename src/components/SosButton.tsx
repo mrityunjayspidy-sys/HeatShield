@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertOctagon, PhoneCall, MessageSquare, Copy, Check, X, ShieldAlert, MapPin } from 'lucide-react';
 import { GlassCard } from './ui/GlassCard';
 import type { UserSession } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { getCurrentCoordinates } from '../lib/location';
 
 interface SosButtonProps {
@@ -43,7 +44,7 @@ export function SosButton({ userSession, currentTempC = 38, heatScore = 75, full
   useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {
-      triggerSms();
+      dispatchEmergencyAlert();
       setCountdown(null);
       return;
     }
@@ -55,15 +56,38 @@ export function SosButton({ userSession, currentTempC = 38, heatScore = 75, full
 
   const sosMessage = `🚨 EMERGENCY HEAT STRESS ALERT!\nThis is ${userName}. I am experiencing severe heat exhaustion/stress symptoms.\nTemp: ${currentTempC}°C | Heat Score: ${heatScore}/100 (HIGH RISK)\nMy Location: ${mapLink}\nPlease check on me or contact medical services immediately!`;
 
-  const triggerSms = () => {
+  const dispatchEmergencyAlert = async () => {
+    // 1. Log SOS alert to Supabase DB for record
+    try {
+      await supabase.from('sos_alerts').insert({
+        user_name: userName,
+        contact_name: contactName,
+        contact_phone: contactPhone,
+        message: sosMessage,
+        created_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('SOS DB log note:', e);
+    }
+
+    // 2. Automatically launch SMS dispatch directly to emergency contact
     const cleanPhone = contactPhone.replace(/[^\d+]/g, '');
-    const smsUrl = `sms:${cleanPhone}?body=${encodeURIComponent(sosMessage)}`;
-    window.location.href = smsUrl;
+    if (cleanPhone) {
+      window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(sosMessage)}`;
+    } else {
+      // Fallback: Copy to clipboard and launch default SMS app
+      navigator.clipboard.writeText(sosMessage);
+      window.location.href = `sms:?body=${encodeURIComponent(sosMessage)}`;
+    }
   };
+
+  const triggerSms = dispatchEmergencyAlert;
 
   const triggerCall = () => {
     const cleanPhone = contactPhone.replace(/[^\d+]/g, '');
-    window.location.href = `tel:${cleanPhone}`;
+    if (cleanPhone) {
+      window.location.href = `tel:${cleanPhone}`;
+    }
   };
 
   const copyPayload = () => {
@@ -78,7 +102,7 @@ export function SosButton({ userSession, currentTempC = 38, heatScore = 75, full
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.96 }}
-        onClick={() => { setIsOpen(true); setCountdown(3); }}
+        onClick={() => { setIsOpen(true); dispatchEmergencyAlert(); }}
         type="button"
         title="SOS Emergency Heat Alert"
         style={{

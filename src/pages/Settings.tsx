@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings as SettingsIcon, Moon, Bell, MapPin, Thermometer, Clock,
@@ -65,17 +66,31 @@ export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) 
       prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
     );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
     const payload = {
       rating,
-      features,
+      requested_features: features,
       message,
-      submittedAt: new Date().toISOString(),
+      submitted_at: new Date().toISOString(),
+      recipient: 'mrityunjay.spidy@gmail.com',
     };
     localStorage.setItem('heatwatch_feedback', JSON.stringify(payload));
 
-    // Construct structured mailto link to send feedback directly to developer's email
+    // Persist feedback submission into Supabase DB `feedback` table if configured
+    try {
+      await supabase.from('feedback').insert({
+        rating,
+        features,
+        message,
+        user_email: 'mrityunjay.spidy@gmail.com',
+        created_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('Feedback DB log note:', e);
+    }
+
+    // Trigger email mailto link to mrityunjay.spidy@gmail.com
     const subject = encodeURIComponent(`HeatWatch App Feedback (${rating} Stars)`);
     const bodyText = encodeURIComponent(
       `HeatWatch User Feedback Submission:\n\n` +
@@ -85,8 +100,7 @@ export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) 
       `Submitted at: ${new Date().toLocaleString()}`
     );
 
-    // Launch mail client
-    window.location.href = `mailto:admin@heatwatch.app?subject=${subject}&body=${bodyText}`;
+    window.location.href = `mailto:mrityunjay.spidy@gmail.com?subject=${subject}&body=${bodyText}`;
 
     setSubmitted(true);
     setTimeout(() => {
