@@ -169,8 +169,7 @@ export function Dashboard({ userSession, tempUnit = 'C' }: DashboardProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <img src="/logo.png" alt="HeatShield Logo" style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'contain' }} />
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>HeatShield</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>HeatWatch</h1>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12,
                 background: isCustomLocation ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.12)',

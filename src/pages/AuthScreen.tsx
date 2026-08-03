@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Eye, EyeOff, Lock, Mail, User as UserIcon,
+  Shield, Eye, EyeOff, Lock, Mail, User as UserIcon,
   CheckCircle2, AlertCircle, ArrowRight, Sun, Droplets,
   ChevronLeft, ChevronRight, Loader2, KeyRound,
   Activity, Scale, Pill,
@@ -412,16 +412,15 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
         <div style={{
-          width: 72, height: 72, borderRadius: 22, background: 'rgba(255,255,255,0.08)',
-          backdropFilter: 'blur(16px)', border: '1.5px solid rgba(255,255,255,0.3)',
+          width: 60, height: 60, borderRadius: 20, background: 'rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.25)',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-          overflow: 'hidden', padding: 6,
         }}>
-          <img src="/logo.png" alt="HeatShield Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <Shield size={32} color="#FFFFFF" />
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: '#FFF' }}>HeatShield</h1>
+        <h1 style={{ fontSize: 26, fontWeight: 900, color: '#FFF' }}>HeatWatch Security</h1>
         <p style={{ fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
-          {isLogin ? 'Sign in to access your heat safety profile' : 'Create your heat safety account'}
+          {isLogin ? 'Sign in to access your heat safety profile' : 'Create a secure heat risk account'}
         </p>
       </div>
 
