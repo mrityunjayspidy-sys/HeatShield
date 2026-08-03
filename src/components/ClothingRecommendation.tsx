@@ -368,20 +368,20 @@ function scoreItem(
   return score;
 }
 
-// ── Badge data ────────────────────────────────────────────────────────────────
+// ── Badge data (Subtle Monochrome Edition) ──────────────────────────────────
 const ABSORPTION_DOT: Record<ClothingItem['heatAbsorption'], { color: string; label: string }> = {
-  'very low': { color: '#10B981', label: 'Very Low' },
-  'low':      { color: '#34D399', label: 'Low' },
-  'moderate': { color: '#F59E0B', label: 'Moderate' },
-  'high':     { color: '#EF4444', label: 'High' },
+  'very low': { color: '#E4E4E7', label: 'Very Low' },
+  'low':      { color: '#A1A1AA', label: 'Low' },
+  'moderate': { color: '#71717A', label: 'Moderate' },
+  'high':     { color: '#52525B', label: 'High' },
 };
 
 const UV_PROT_BADGE: Record<ClothingItem['uvProtection'], { color: string; label: string }> = {
   'none':     { color: '#52525B', label: 'No UV' },
-  'low':      { color: '#94A3B8', label: 'Basic' },
-  'moderate': { color: '#60A5FA', label: 'Moderate' },
-  'high':     { color: '#A78BFA', label: 'High' },
-  'max':      { color: '#F472B6', label: 'UPF 50+' },
+  'low':      { color: '#71717A', label: 'Basic' },
+  'moderate': { color: '#A1A1AA', label: 'Moderate' },
+  'high':     { color: '#D4D4D8', label: 'High' },
+  'max':      { color: '#FFFFFF', label: 'UPF 50+' },
 };
 
 const SCENARIO_META: Record<WeatherScenario, { label: string; emoji: string; desc: string; headerColor: string; headerBg: string }> = {
@@ -401,12 +401,12 @@ function formatTemp(c: number, unit: 'C' | 'F') {
   return unit === 'F' ? `${((c * 9) / 5 + 32).toFixed(0)}°F` : `${c.toFixed(0)}°C`;
 }
 
-// ── Color Heat Reflection Data ────────────────────────────────────────────────
+// ── Color Heat Reflection Data (Subtle & Elegant Theme) ────────────────────────
 const COLOR_HEAT_GUIDE = [
-  { name: 'White / Pastel', hex: '#FFFFFF', textHex: '#000', reflectPct: 95, absorbPct: 5, rating: 'BEST', desc: 'Reflects 95% of solar radiation. Reduces heat intake by up to 5°C.' },
-  { name: 'Yellow / Light Khaki', hex: '#FDE047', textHex: '#000', reflectPct: 80, absorbPct: 20, rating: 'GOOD', desc: 'High reflection. Great alternative to plain white.' },
-  { name: 'Red / Light Blue', hex: '#F87171', textHex: '#FFF', reflectPct: 55, absorbPct: 45, rating: 'MODERATE', desc: 'Moderate solar absorption. Okay for short exposures.' },
-  { name: 'Black / Dark Navy', hex: '#1E293B', textHex: '#FFF', reflectPct: 15, absorbPct: 85, rating: 'AVOID', desc: 'Absorbs 85% of solar heat! Increases surface body temperature rapidly.' },
+  { name: 'White / Pastel', hex: 'rgba(255,255,255,0.18)', textHex: '#FFFFFF', reflectPct: 95, absorbPct: 5, rating: 'BEST', desc: 'Reflects 95% of solar radiation. Reduces heat intake by up to 5°C.' },
+  { name: 'Yellow / Light Khaki', hex: 'rgba(255,255,255,0.10)', textHex: '#E4E4E7', reflectPct: 80, absorbPct: 20, rating: 'GOOD', desc: 'High reflection. Great alternative to plain white.' },
+  { name: 'Red / Light Blue', hex: 'rgba(255,255,255,0.06)', textHex: '#A1A1AA', reflectPct: 55, absorbPct: 45, rating: 'MODERATE', desc: 'Moderate solar absorption. Okay for short exposures.' },
+  { name: 'Black / Dark Navy', hex: 'rgba(0,0,0,0.4)', textHex: '#71717A', reflectPct: 15, absorbPct: 85, rating: 'AVOID', desc: 'Absorbs 85% of solar heat! Increases surface body temperature rapidly.' },
 ];
 
 export function ClothingRecommendation({
@@ -496,10 +496,10 @@ export function ClothingRecommendation({
                 onClick={() => setSelectedColorIdx(idx)}
                 style={{
                   padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
-                  background: c.hex, color: c.textHex,
-                  border: `2px solid ${selectedColorIdx === idx ? '#38BDF8' : 'rgba(0,0,0,0.2)'}`,
-                  boxShadow: selectedColorIdx === idx ? '0 0 10px rgba(56,189,248,0.5)' : 'none',
-                  fontSize: 10, fontWeight: 900,
+                  background: selectedColorIdx === idx ? 'rgba(255,255,255,0.18)' : c.hex,
+                  color: selectedColorIdx === idx ? '#FFFFFF' : c.textHex,
+                  border: `1.5px solid ${selectedColorIdx === idx ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                  fontSize: 10, fontWeight: 800,
                   transition: 'all 0.15s',
                 }}
               >
@@ -514,24 +514,24 @@ export function ClothingRecommendation({
             return (
               <div style={{
                 padding: '10px 12px', borderRadius: 12,
-                background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
                 display: 'flex', flexDirection: 'column', gap: 6,
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 900, color: '#FFF' }}>{active.name}</span>
                   <span style={{
                     fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 6,
-                    background: active.rating === 'BEST' ? 'rgba(16,185,129,0.2)' : active.rating === 'AVOID' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)',
-                    color: active.rating === 'BEST' ? '#34D399' : active.rating === 'AVOID' ? '#F87171' : '#FBBF24',
+                    background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                    color: '#FFFFFF',
                   }}>
                     {active.rating}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
-                  <span style={{ color: '#34D399', fontWeight: 700 }}>☀️ Reflects {active.reflectPct}% heat</span>
-                  <span style={{ color: '#F87171', fontWeight: 700 }}>🔥 Absorbs {active.absorbPct}% heat</span>
+                  <span style={{ color: '#E4E4E7', fontWeight: 700 }}>☀️ Reflects {active.reflectPct}% heat</span>
+                  <span style={{ color: '#A1A1AA', fontWeight: 700 }}>🔥 Absorbs {active.absorbPct}% heat</span>
                 </div>
-                <p style={{ fontSize: 11, color: '#CBD5E1', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11, color: '#A1A1AA', margin: 0, lineHeight: 1.5 }}>
                   {active.desc}
                 </p>
               </div>
