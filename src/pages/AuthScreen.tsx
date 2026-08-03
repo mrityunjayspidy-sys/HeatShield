@@ -10,7 +10,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import {
   signUpWithEmail, signInWithEmail, sendPasswordReset,
-  upsertProfile, fetchProfile,
+  upsertProfile, fetchProfile, saveUserSession,
   type UserSession,
 } from '../lib/supabase';
 
@@ -142,15 +142,15 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [medications, setMedications] = useState(false);
   const [outdoor, setOutdoor] = useState(false);
   const [pastHeatStroke, setPastHeatStroke] = useState(false);
-  const [bloodPressure, setBloodPressure] = useState<'normal' | 'elevated' | 'high'>('normal');
+  const [bloodPressure] = useState<'normal' | 'elevated' | 'high'>('normal');
 
   // Health profile form - Sun & Hydration
   const [skinType, setSkinType] = useState<SkinTypeId>('III');
-  const [sunSensitivity, setSunSensitivity] = useState<'very_sensitive' | 'moderate' | 'resistant'>('moderate');
-  const [sunHours, setSunHours] = useState(4);
+  const [sunSensitivity] = useState<'very_sensitive' | 'moderate' | 'resistant'>('moderate');
+  const [sunHours] = useState(4);
   const [waterGoal, setWaterGoal] = useState(2500);
-  const [waterIntake, setWaterIntake] = useState('2000');
-  const [bodyWater, setBodyWater] = useState('60');
+  const [waterIntake] = useState('2000');
+  const [bodyWater] = useState('60');
   const [sweatRate, setSweatRate] = useState<'low' | 'normal' | 'heavy'>('normal');
   const [hydrationLevel, setHydrationLevel] = useState<'dehydrated' | 'normal' | 'well_hydrated'>('normal');
 
@@ -200,27 +200,12 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       const existingProfile = await fetchProfile(user.id);
 
       if (existingProfile) {
-        // Pre-fill state with user's saved personal health data
-        setAge(existingProfile.age || 28);
-        setHeightCm(existingProfile.heightCm || 170);
-        setWeightKg(existingProfile.weightKg || 68);
-        setGender(existingProfile.gender || 'male');
-        setConditions(existingProfile.conditions || []);
-        setMedications(existingProfile.medications || false);
-        setOutdoor(existingProfile.outdoor || false);
-        setPastHeatStroke(existingProfile.pastHeatStrokeHistory || false);
-        setBloodPressure(existingProfile.bloodPressure || 'normal');
-        setSkinType(existingProfile.skinType || 'III');
-        setSunSensitivity(existingProfile.sunSensitivity || 'moderate');
-        setSunHours(existingProfile.sunExposureHoursPerDay || 4);
-        setWaterGoal(existingProfile.dailyWaterGoalMl || 2500);
-        if (existingProfile.dailyWaterIntakeMl) setWaterIntake(existingProfile.dailyWaterIntakeMl.toString());
-        if (existingProfile.bodyWaterPercent) setBodyWater(existingProfile.bodyWaterPercent.toString());
-        setSweatRate(existingProfile.sweatRate || 'normal');
-        setHydrationLevel(existingProfile.currentHydrationLevel || 'normal');
-
-        setPendingSession(existingProfile);
+        // User already has a saved health profile! Cache it and go straight to Dashboard
+        saveUserSession(existingProfile);
+        onAuthenticated(existingProfile);
+        return;
       } else {
+        // No health profile found yet — prompt through 1-time setup wizard
         const session: UserSession = {
           id: user.id,
           email: user.email ?? email,
@@ -231,8 +216,8 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
           createdAt: user.created_at,
         };
         setPendingSession(session);
+        setWizardStep('body');
       }
-      setWizardStep('body');
     } else {
       // ── Sign up ───────────────────────────────────────────────────────────
       const { user, error: authErr } = await signUpWithEmail(email, password);

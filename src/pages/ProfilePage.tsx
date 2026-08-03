@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { User as UserIcon, Phone, ShieldCheck, Edit3, Save, LogOut } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
-import { type UserSession, saveUserSession, clearUserSession } from '../lib/supabase';
+import { type UserSession, saveUserSession, clearUserSession, upsertProfile } from '../lib/supabase';
 
 interface ProfilePageProps {
   session: UserSession;
@@ -41,7 +41,7 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const updated: UserSession = {
       ...session,
       name: form.name,
@@ -58,6 +58,7 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
         phone: form.emergencyPhone,
       },
     };
+    await upsertProfile(updated);
     saveUserSession(updated);
     onUpdateSession(updated);
     setIsEditing(false);
@@ -120,34 +121,46 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
             Biometric Data
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 12, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 11, color: '#A1A1AA' }}>Age</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA' }}>Age</div>
               {isEditing ? (
                 <input
                   type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })}
-                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 16 }}
+                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 14 }}
                 />
               ) : (
-                <div style={{ fontSize: 18, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.age} yrs</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.age} yrs</div>
               )}
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 12, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 11, color: '#A1A1AA' }}>Weight</div>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA' }}>Height</div>
+              {isEditing ? (
+                <input
+                  type="number" value={form.heightCm} onChange={(e) => setForm({ ...form, heightCm: e.target.value })}
+                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 14 }}
+                />
+              ) : (
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.heightCm} cm</div>
+              )}
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA' }}>Weight</div>
               {isEditing ? (
                 <input
                   type="number" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })}
-                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 16 }}
+                  style={{ width: '100%', background: 'none', border: '1px solid #FFF', color: '#FFF', textAlign: 'center', borderRadius: 6, fontWeight: 800, fontSize: 14 }}
                 />
               ) : (
-                <div style={{ fontSize: 18, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.weightKg} kg</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{form.weightKg} kg</div>
               )}
             </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 12, borderRadius: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 11, color: '#A1A1AA' }}>BMI</div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{bmi}</div>
+            <div style={{ background: 'rgba(255,255,255,0.06)', padding: 10, borderRadius: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#A1A1AA' }}>BMI</div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: '#FFF', marginTop: 4 }}>{bmi}</div>
             </div>
           </div>
         </GlassCard>
@@ -155,26 +168,33 @@ export function ProfilePage({ session, onUpdateSession, onSignOut }: ProfilePage
         {/* Health Conditions */}
         <GlassCard>
           <h3 style={{ fontSize: 13, fontWeight: 800, color: '#A1A1AA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 }}>
-            Health Conditions & Risk Modifiers
+            Pre-Existing Conditions & Diseases
           </h3>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {['Diabetes', 'Cardiovascular', 'Kidney', 'Pregnant'].map((c) => {
-              const active = form.conditions.includes(c.toLowerCase());
+            {[
+              { id: 'cardiovascular', label: '🫀 Cardiovascular' },
+              { id: 'diabetes', label: '🩸 Diabetes' },
+              { id: 'kidney', label: '🫘 Kidney' },
+              { id: 'respiratory', label: '🫁 Asthma' },
+              { id: 'hypertension', label: '🩺 Hypertension' },
+              { id: 'pregnant', label: '🤰 Pregnant' },
+            ].map((d) => {
+              const active = form.conditions.includes(d.id);
               return (
                 <button
-                  key={c}
+                  key={d.id}
                   disabled={!isEditing}
-                  onClick={() => toggleCondition(c)}
+                  onClick={() => toggleCondition(d.id)}
                   style={{
-                    padding: '8px 14px', borderRadius: 14, fontSize: 13, fontWeight: 700,
+                    padding: '8px 12px', borderRadius: 12, fontSize: 12, fontWeight: 700,
                     background: active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)',
                     border: `1.5px solid ${active ? '#FFFFFF' : 'rgba(255,255,255,0.15)'}`,
                     color: active ? '#FFFFFF' : '#A1A1AA',
                     cursor: isEditing ? 'pointer' : 'default', transition: 'all 0.2s',
                   }}
                 >
-                  {c}
+                  {d.label}
                 </button>
               );
             })}
