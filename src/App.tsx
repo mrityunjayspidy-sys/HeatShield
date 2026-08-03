@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Bell, Droplets, User, Settings, Briefcase } from 'lucide-react';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Home, Bell, Droplets, User, Settings, Briefcase, LogOut } from 'lucide-react';
+import { GlassCard } from './components/ui/GlassCard';
 import { Dashboard } from './pages/Dashboard';
 import { Onboarding } from './pages/Onboarding';
 import { WelcomeScreen } from './pages/WelcomeScreen';
@@ -40,7 +42,10 @@ export default function App() {
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>(() => {
     return (localStorage.getItem('heatwatch_temp_unit') as 'C' | 'F') || 'C';
   });
+
+  // Always default to Home tab when opening/resuming the app
   const [tab, setTab] = useState<Tab>('home');
+  const [showExitModal, setShowExitModal] = useState<boolean>(false);
 
   // Single global weather state initialized with instant local cache
   const [weather, setWeather] = useState<LiveWeatherData | null>(() => getCachedWeather());
@@ -62,6 +67,30 @@ export default function App() {
       setLoadingWeather(false);
     }
   };
+
+  // ── Native Android Back Button & App Resume Lifecycle Handler ──
+  useEffect(() => {
+    // 1. Reset to Home tab whenever app is opened/resumed
+    const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        setTab('home');
+      }
+    });
+
+    // 2. Intercept native hardware back button on Android
+    const backButtonListener = CapacitorApp.addListener('backButton', () => {
+      if (tab !== 'home') {
+        setTab('home');
+      } else {
+        setShowExitModal(true);
+      }
+    });
+
+    return () => {
+      appStateListener.then((h) => h.remove());
+      backButtonListener.then((h) => h.remove());
+    };
+  }, [tab]);
 
   // ── Supabase auth state listener ───────────────────────────────────────
   useEffect(() => {
@@ -256,6 +285,74 @@ export default function App() {
         magnification={62}
         distance={160}
       />
+
+      {/* ── Native Exit Confirmation Modal ── */}
+      <AnimatePresence>
+        {showExitModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              style={{ width: '100%', maxWidth: 360 }}
+            >
+              <GlassCard elevation="hero" style={{ border: '1.5px solid rgba(255,255,255,0.25)', textAlign: 'center', padding: '24px 20px' }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  background: 'rgba(239, 68, 68, 0.15)', border: '1.5px solid rgba(239, 68, 68, 0.4)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+                }}>
+                  <LogOut size={26} color="#EF4444" />
+                </div>
+
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>
+                  Exit HeatWatch?
+                </h3>
+                <p style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.5, marginBottom: 22 }}>
+                  Are you sure you want to close the app? Your heat monitoring and safety data will stay saved.
+                </p>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    onClick={() => setShowExitModal(false)}
+                    style={{
+                      flex: 1, padding: '12px', borderRadius: 14,
+                      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
+                      color: '#FFF', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowExitModal(false);
+                      setTab('home');
+                      CapacitorApp.exitApp();
+                    }}
+                    style={{
+                      flex: 1, padding: '12px', borderRadius: 14,
+                      background: '#EF4444', border: 'none',
+                      color: '#FFF', fontWeight: 900, fontSize: 14, cursor: 'pointer',
+                      boxShadow: '0 4px 16px rgba(239,68,68,0.4)',
+                    }}
+                  >
+                    Exit App
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
