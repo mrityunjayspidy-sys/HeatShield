@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { App as CapacitorApp } from '@capacitor/app';
-import { Home, Bell, Droplets, User, Settings, Briefcase, LogOut } from 'lucide-react';
+import { Home, Bell, Droplets, User, Settings, Briefcase, LogOut, MapPinOff } from 'lucide-react';
 import { GlassCard } from './components/ui/GlassCard';
 import { Dashboard } from './pages/Dashboard';
 import { Onboarding } from './pages/Onboarding';
@@ -17,6 +17,7 @@ import Dock, { type DockItemData } from './components/ui/Dock';
 import { supabase, getCachedProfile, cacheProfile, signOut, fetchProfile, type UserSession } from './lib/supabase';
 import { fetchLiveWeather, getCachedWeather, cacheWeather, type LiveWeatherData } from './lib/weather';
 import { getCurrentCoordinates } from './lib/location';
+import { requestNotificationPermission } from './lib/notifications';
 
 type Tab = 'home' | 'alerts' | 'hydration' | 'profile' | 'settings' | 'work';
 
@@ -46,6 +47,7 @@ export default function App() {
   // Always default to Home tab when opening/resuming the app
   const [tab, setTab] = useState<Tab>('home');
   const [showExitModal, setShowExitModal] = useState<boolean>(false);
+  const [showLocationModal, setShowLocationModal] = useState<boolean>(false);
 
   // Single global weather state initialized with instant local cache
   const [weather, setWeather] = useState<LiveWeatherData | null>(() => getCachedWeather());
@@ -158,11 +160,28 @@ export default function App() {
     }
   }, [onboarded]);
 
-  // Load weather once on app startup (or use instant cached weather)
+  // Load weather once on app startup + check location + request notification permission
   useEffect(() => {
-    if (onboarded) {
-      loadWeather();
-    }
+    if (!onboarded) return;
+
+    // Request notification permission on startup
+    requestNotificationPermission().catch(() => {});
+
+    // Try to load weather — if location fails, show location modal
+    (async () => {
+      try {
+        const coords = await getCurrentCoordinates();
+        // If we got the default fallback coords (Delhi), location might be off
+        if (coords.latitude === 28.6139 && coords.longitude === 77.2090) {
+          setShowLocationModal(true);
+        }
+        const data = await fetchLiveWeather(coords.latitude, coords.longitude);
+        cacheWeather(data);
+        setWeather(data);
+      } catch {
+        setShowLocationModal(true);
+      }
+    })();
   }, [onboarded]);
 
   const handleStartWelcome = () => {
@@ -376,6 +395,86 @@ export default function App() {
                     Exit App
                   </button>
                 </div>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Location Access Required Modal ── */}
+      <AnimatePresence>
+        {showLocationModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9998,
+              background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(20px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              style={{ width: '100%', maxWidth: 360 }}
+            >
+              <GlassCard elevation="hero" style={{ border: '1.5px solid rgba(255,255,255,0.25)', textAlign: 'center', padding: '28px 20px' }}>
+                <div style={{
+                  width: 60, height: 60, borderRadius: '50%',
+                  background: 'rgba(245, 158, 11, 0.15)', border: '1.5px solid rgba(245, 158, 11, 0.4)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+                }}>
+                  <MapPinOff size={28} color="#F59E0B" />
+                </div>
+
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>
+                  Enable Location Access
+                </h3>
+                <p style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.6, marginBottom: 22 }}>
+                  HeatWatch needs your location to provide real-time heat risk data, weather alerts, and safety recommendations for your area.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const coords = await getCurrentCoordinates();
+                        if (coords.latitude !== 28.6139 || coords.longitude !== 77.2090) {
+                          setShowLocationModal(false);
+                          const data = await fetchLiveWeather(coords.latitude, coords.longitude);
+                          cacheWeather(data);
+                          setWeather(data);
+                        }
+                      } catch {
+                        // Still can't get location
+                      }
+                    }}
+                    style={{
+                      width: '100%', padding: '14px', borderRadius: 14,
+                      background: '#F59E0B', border: 'none',
+                      color: '#000', fontWeight: 900, fontSize: 15, cursor: 'pointer',
+                      boxShadow: '0 4px 16px rgba(245,158,11,0.4)',
+                    }}
+                  >
+                    📍 Enable Location
+                  </button>
+                  <button
+                    onClick={() => setShowLocationModal(false)}
+                    style={{
+                      width: '100%', padding: '11px', borderRadius: 14,
+                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
+                      color: '#52525B', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                    }}
+                  >
+                    Skip for now
+                  </button>
+                </div>
+
+                <p style={{ fontSize: 10, color: '#3F3F46', marginTop: 14, lineHeight: 1.4 }}>
+                  You can change this later in your device Settings → Location.
+                </p>
               </GlassCard>
             </motion.div>
           </motion.div>
