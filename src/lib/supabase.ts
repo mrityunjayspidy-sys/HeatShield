@@ -83,7 +83,13 @@ export async function signUpWithEmail(
   password: string,
 ): Promise<{ user: User | null; error: string | null }> {
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
     if (error) return { user: null, error: error.message };
     return { user: data.user, error: null };
   } catch (err: unknown) {

@@ -9,7 +9,7 @@ import {
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import {
-  signUpWithEmail, signInWithEmail, sendPasswordReset,
+  supabase, signUpWithEmail, signInWithEmail, sendPasswordReset,
   upsertProfile, fetchProfile, saveUserSession,
   type UserSession,
 } from '../lib/supabase';
@@ -120,6 +120,9 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
@@ -190,9 +193,22 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       if (authErr || !user) {
         if (authErr?.includes('Invalid login credentials')) {
           setError('No user found with this email/password in Supabase. Switch to Register tab to create this account, or use the 1-click test credentials.');
+        } else if (authErr?.includes('Email not confirmed')) {
+          // Supabase returns this when email is not yet verified
+          setVerificationEmail(email);
+          setShowEmailVerification(true);
         } else {
           setError(authErr ?? 'Login failed. Please check your credentials.');
         }
+        return;
+      }
+
+      // Check if email is actually confirmed
+      if (!user.email_confirmed_at) {
+        setVerificationEmail(email);
+        setShowEmailVerification(true);
+        // Sign them out so they can't bypass verification
+        await supabase.auth.signOut();
         return;
       }
 
@@ -230,17 +246,9 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         }
         return;
       }
-      const session: UserSession = {
-        id: user.id,
-        email: user.email ?? email,
-        name: name || email.split('@')[0],
-        age: 28, weightKg: 68, heightCm: 170,
-        conditions: [], medications: false, outdoor: false,
-        emergencyContact: { name: 'Primary Contact', phone: '', relationship: 'Contact' },
-        createdAt: new Date().toISOString(),
-      };
-      setPendingSession(session);
-      setWizardStep('body');
+      // Show email verification screen — user MUST confirm their email before proceeding
+      setVerificationEmail(email);
+      setShowEmailVerification(true);
     }
   };
 
@@ -307,23 +315,78 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
             }}>
               <Mail size={30} color="#10B981" />
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>Check your inbox!</h2>
-            <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, marginBottom: 20 }}>
-              We sent a verification link to <strong style={{ color: '#FFF' }}>{email}</strong>.<br />
-              Click the link in the email to activate your account, then come back and sign in.
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#FFF', marginBottom: 8 }}>Verify your email</h2>
+            <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, marginBottom: 6 }}>
+              We sent a confirmation link to
             </p>
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              onClick={() => { setShowEmailVerification(false); setIsLogin(true); }}
-              type="button"
-              style={{
-                padding: '13px 28px', borderRadius: 14,
-                background: '#FFFFFF', border: 'none',
-                color: '#000', fontWeight: 800, fontSize: 14, cursor: 'pointer',
-              }}
-            >
-              Go to Sign In
-            </motion.button>
+            <p style={{ fontSize: 15, color: '#FFF', fontWeight: 800, marginBottom: 6 }}>
+              {verificationEmail}
+            </p>
+            <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, marginBottom: 22 }}>
+              Open the email and click the confirmation link to activate your account.
+              Once confirmed, come back and sign in.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => { setShowEmailVerification(false); setIsLogin(true); setError(null); }}
+                type="button"
+                style={{
+                  width: '100%', maxWidth: 260, padding: '13px 28px', borderRadius: 14,
+                  background: '#FFFFFF', border: 'none',
+                  color: '#000', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(255,255,255,0.25)',
+                }}
+              >
+                Go to Sign In
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                disabled={resendLoading || resendCooldown > 0}
+                onClick={async () => {
+                  setResendLoading(true);
+                  try {
+                    // Re-trigger Supabase confirmation email by calling signUp again with same credentials
+                    // Supabase will resend the confirmation email if user exists but is unverified
+                    await supabase.auth.resend({ type: 'signup', email: verificationEmail });
+                    setResendCooldown(60);
+                    const timer = setInterval(() => {
+                      setResendCooldown((prev) => {
+                        if (prev <= 1) { clearInterval(timer); return 0; }
+                        return prev - 1;
+                      });
+                    }, 1000);
+                  } catch (err) {
+                    console.warn('Resend error:', err);
+                  } finally {
+                    setResendLoading(false);
+                  }
+                }}
+                type="button"
+                style={{
+                  width: '100%', maxWidth: 260, padding: '11px 20px', borderRadius: 14,
+                  background: resendCooldown > 0 ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  color: resendCooldown > 0 ? '#52525B' : '#A1A1AA', fontWeight: 700, fontSize: 13,
+                  cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
+              >
+                {resendLoading ? (
+                  <><Loader2 size={14} className="animate-spin" /> Sending…</>
+                ) : resendCooldown > 0 ? (
+                  <>Resend in {resendCooldown}s</>
+                ) : (
+                  <>📧 Resend Verification Email</>
+                )}
+              </motion.button>
+            </div>
+
+            <p style={{ fontSize: 11, color: '#52525B', marginTop: 16, lineHeight: 1.5 }}>
+              Didn't receive it? Check your spam folder or try resending.
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
