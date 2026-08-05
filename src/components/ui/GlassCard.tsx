@@ -19,6 +19,7 @@ export function GlassCard({ children, className = '', tier, elevation = 'mid', o
 
   return (
     <motion.div
+      data-glass-card="true"
       whileHover={onClick ? { scale: 1.02 } : undefined}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       onClick={onClick}
