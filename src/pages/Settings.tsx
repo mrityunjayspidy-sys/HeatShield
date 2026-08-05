@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
+import { scheduleHydrationReminders, cancelHydrationReminders } from '../lib/notifications';
+
+const INTERVAL_OPTIONS = [15, 20, 30, 45, 60];
 
 // ── Glass Toggle ──────────────────────────────────────────────────────────────
 function GlassToggle({ active, onToggle }: { active: boolean; onToggle: () => void }) {
@@ -52,6 +55,27 @@ export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) 
   // ── Existing settings ──────────────────────────────────────────────────────
   const [notifications, setNotifications] = useState(true);
   const [location, setLocation]         = useState(true);
+  const [alertInterval, setAlertInterval] = useState<number>(() => {
+    return parseInt(localStorage.getItem('heatwatch_hydration_interval') || '20', 10);
+  });
+
+  const handleSetAlertInterval = async (min: number) => {
+    setAlertInterval(min);
+    localStorage.setItem('heatwatch_hydration_interval', String(min));
+    if (notifications) {
+      await scheduleHydrationReminders(min, 3000, 0, 32, 'warning');
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    const next = !notifications;
+    setNotifications(next);
+    if (!next) {
+      await cancelHydrationReminders();
+    } else {
+      await scheduleHydrationReminders(alertInterval, 3000, 0, 32, 'warning');
+    }
+  };
 
   // ── Feedback form ──────────────────────────────────────────────────────────
   const [rating, setRating]         = useState(0);
@@ -152,11 +176,34 @@ export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) 
             Notifications &amp; Location
           </h3>
           <SettingRow icon={Bell} label="Push Notifications" description="Heat alerts & hydration reminders"
-            right={<GlassToggle active={notifications} onToggle={() => setNotifications(!notifications)} />} />
+            right={<GlassToggle active={notifications} onToggle={handleToggleNotifications} />} />
           <SettingRow icon={MapPin} label="Location Services" description="GPS-based weather monitoring"
             right={<GlassToggle active={location} onToggle={() => setLocation(!location)} />} />
-          <SettingRow icon={Clock} label="Alert Interval" description="Repeats every 20 min in Warning/Danger"
-            right={<span style={{ color: '#94A3B8', fontWeight: 700, fontSize: 13 }}>20 min</span>} />
+          <SettingRow
+            icon={Clock}
+            label="Alert Interval"
+            description={`Hydration reminder repeats every ${alertInterval} min`}
+            right={
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                {INTERVAL_OPTIONS.map((min) => (
+                  <motion.button
+                    key={min}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleSetAlertInterval(min)}
+                    style={{
+                      padding: '5px 9px', borderRadius: 8, fontWeight: 800, fontSize: 11,
+                      background: alertInterval === min ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
+                      border: `1.5px solid ${alertInterval === min ? '#FFFFFF' : 'rgba(255,255,255,0.15)'}`,
+                      color: alertInterval === min ? '#000000' : '#A1A1AA', cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {min}m
+                  </motion.button>
+                ))}
+              </div>
+            }
+          />
         </GlassCard>
 
         {/* ── Units ── */}
