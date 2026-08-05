@@ -5,7 +5,7 @@
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, ChevronDown, ChevronUp, Sun, Wind, Thermometer, CloudRain, Snowflake } from 'lucide-react';
+import { Shirt, ChevronDown, ChevronUp, Sun, Wind, Thermometer, CloudRain, Snowflake, Droplets } from 'lucide-react';
 import { GlassCard } from './ui/GlassCard';
 import type { RiskTier } from '../lib/scoring';
 import type { WeatherCondition } from '../lib/weather';

@@ -84,7 +84,6 @@ export function OutdoorTimeSuggestion({
       {/* Hourly mini bar chart */}
       <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', marginBottom: 16, height: 60 }}>
         {scored.map((slot, i) => {
-          const badge = TIER_BADGE[slot.tier];
           const pct = (slot.score / 100) * 100;
           return (
             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
