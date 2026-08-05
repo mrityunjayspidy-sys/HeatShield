@@ -116,8 +116,8 @@ export function HydrationReminder({
           <div style={{ fontSize: 26, fontWeight: 900, color: '#FFFFFF' }}>
             {recommendedMlPerHour} ml <span style={{ fontSize: 13, fontWeight: 600, color: '#A1A1AA' }}>/ hour</span>
           </div>
-          <div style={{ fontSize: 11, color: '#71717A', marginTop: 2 }}>
-            💧 Drink <strong style={{ color: '#FFF' }}>{mlPerDose} ml</strong> every <strong style={{ color: '#FFF' }}>{intervalMins} minutes</strong>
+          <div style={{ fontSize: 11, color: '#71717A', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Droplets size={12} color="#FFFFFF" /> Drink <strong style={{ color: '#FFF' }}>{mlPerDose} ml</strong> every <strong style={{ color: '#FFF' }}>{intervalMins} minutes</strong>
           </div>
         </div>
 
@@ -144,14 +144,14 @@ export function HydrationReminder({
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             style={{
               padding: '12px 14px', borderRadius: 12,
-              background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.5)',
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
               display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14,
             }}
           >
-            <Volume2 size={20} color="#F59E0B" />
+            <Volume2 size={20} color="#FFFFFF" />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#FFF' }}>Time to drink water!</div>
-              <div style={{ fontSize: 11, color: '#FCD34D' }}>Drink {mlPerDose} ml now to maintain hydration in {tempC}°C heat.</div>
+              <div style={{ fontSize: 11, color: '#E4E4E7' }}>Drink {mlPerDose} ml now to maintain hydration in {tempC}°C heat.</div>
             </div>
             <button
               onClick={() => setAlertTriggered(false)}

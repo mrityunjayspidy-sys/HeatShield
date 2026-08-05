@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Droplets, Plus, RotateCcw, Target, Bell, BellOff, Clock, Trash2, GlassWater } from 'lucide-react';
+import { Droplets, Plus, RotateCcw, Target, Bell, BellOff, Clock, Trash2, GlassWater, CloudSun, Send, Check } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
-import { scheduleHydrationReminders, cancelHydrationReminders } from '../lib/notifications';
+import { scheduleHydrationReminders, cancelHydrationReminders, sendLocalNotification } from '../lib/notifications';
+import type { LiveWeatherData } from '../lib/weather';
+import type { UserSession } from '../lib/supabase';
+import { computeHeatScore } from '../lib/scoring';
 
 // ── Persistence helpers ───────────────────────────────────────────────────────
 const getTodayKey = () => new Date().toISOString().slice(0, 10);
@@ -45,25 +48,69 @@ function loadRemindersOn(): boolean {
 }
 
 function loadInterval(): number {
-  return parseInt(localStorage.getItem(INTERVAL_KEY) || '45', 10);
+  return parseInt(localStorage.getItem(INTERVAL_KEY) || '30', 10);
 }
 
 const PRESETS = [250, 500, 750];
-const GOAL_OPTIONS = [2000, 2500, 3000, 3500, 4000];
-const INTERVAL_OPTIONS = [30, 45, 60, 90, 120];
+const GOAL_OPTIONS = [2000, 2500, 3000, 3500, 4000, 4500];
+const INTERVAL_OPTIONS = [15, 20, 30, 45, 60, 90];
 
-export function HydrationTracker() {
+interface HydrationTrackerProps {
+  userSession?: UserSession;
+  weather?: LiveWeatherData | null;
+}
+
+export function HydrationTracker({ userSession, weather }: HydrationTrackerProps) {
   const [logs, setLogs] = useState<HydrationLog[]>(() => loadTodayLogs());
-  const [goal, setGoal] = useState<number>(() => loadGoal());
+  const [userGoal, setUserGoal] = useState<number>(() => loadGoal());
   const [customMl, setCustomMl] = useState('');
   const [remindersOn, setRemindersOn] = useState(() => loadRemindersOn());
   const [intervalMin, setIntervalMin] = useState(() => loadInterval());
   const [showGoalPicker, setShowGoalPicker] = useState(false);
   const [showIntervalPicker, setShowIntervalPicker] = useState(false);
+  const [testSent, setTestSent] = useState(false);
+
+  // ── Calculate Weather-Respective Recommended Hydration Target ──
+  const weightKg = userSession?.weightKg || 75;
+  const currentTemp = weather ? weather.tempC : 32.0;
+  const currentHumidity = weather ? weather.humidityPct : 60;
+  const currentUv = weather ? weather.uvIndex : 7;
+
+  const scoreResult = computeHeatScore({
+    tempC: currentTemp,
+    humidity: currentHumidity,
+    uvIndex: currentUv,
+    age: userSession?.age || 30,
+    weightKg,
+    heightCm: userSession?.heightCm || 175,
+    conditions: userSession?.conditions || [],
+    medicationsAffectingHeat: userSession?.medications || false,
+    outdoorOccupation: userSession?.outdoor || false,
+    sunExposureLevel: 'moderate',
+  });
+
+  const baseIntakeMl = Math.round(weightKg * 35); // baseline ~2625ml for 75kg
+  let tempAdjustmentMl = 0;
+  if (currentTemp >= 38) {
+    tempAdjustmentMl = 1200;
+  } else if (currentTemp >= 33) {
+    tempAdjustmentMl = 800;
+  } else if (currentTemp >= 28) {
+    tempAdjustmentMl = 400;
+  } else if (currentTemp >= 24) {
+    tempAdjustmentMl = 200;
+  }
+
+  if (currentHumidity > 70) tempAdjustmentMl += 250;
+
+  const weatherRecommendedGoal = baseIntakeMl + tempAdjustmentMl;
+
+  // Active Target used for progress calculations (User Limit or Weather Target)
+  const activeGoal = userGoal > 0 ? userGoal : weatherRecommendedGoal;
 
   const intakeMl = logs.reduce((sum, l) => sum + l.ml, 0);
-  const pct = Math.min(100, Math.round((intakeMl / goal) * 100));
-  const remaining = Math.max(0, goal - intakeMl);
+  const pct = Math.min(100, Math.round((intakeMl / activeGoal) * 100));
+  const remaining = Math.max(0, activeGoal - intakeMl);
   const glassesLeft = Math.ceil(remaining / 250);
 
   // Animated water ring
@@ -74,14 +121,14 @@ export function HydrationTracker() {
   // Persist logs
   useEffect(() => { saveTodayLogs(logs); }, [logs]);
 
-  // Schedule/cancel reminders when settings change
+  // Schedule/cancel weather-adaptive mobile notifications when settings or weather change
   const syncReminders = useCallback(async () => {
     if (remindersOn) {
-      await scheduleHydrationReminders(intervalMin, goal, intakeMl);
+      await scheduleHydrationReminders(intervalMin, activeGoal, intakeMl, currentTemp, scoreResult.tier);
     } else {
       await cancelHydrationReminders();
     }
-  }, [remindersOn, intervalMin, goal, intakeMl]);
+  }, [remindersOn, intervalMin, activeGoal, intakeMl, currentTemp, scoreResult.tier]);
 
   useEffect(() => { syncReminders(); }, [syncReminders]);
 
@@ -99,8 +146,8 @@ export function HydrationTracker() {
     setLogs([]);
   };
 
-  const handleSetGoal = (ml: number) => {
-    setGoal(ml);
+  const handleSetUserGoal = (ml: number) => {
+    setUserGoal(ml);
     saveGoal(ml);
     setShowGoalPicker(false);
   };
@@ -117,22 +164,96 @@ export function HydrationTracker() {
     setShowIntervalPicker(false);
   };
 
+  const handleSendTestNotification = async () => {
+    await sendLocalNotification(
+      `Hydration Weather Alert (${currentTemp.toFixed(0)}°C)`,
+      `Stay hydrated in ${currentTemp.toFixed(0)}°C heat! Drink 250ml water now. (${remaining}ml remaining to reach your goal)`,
+      8888
+    );
+    setTestSent(true);
+    setTimeout(() => setTestSent(false), 3000);
+  };
+
   return (
-    <AnimatedGradientBackground tier="safe">
+    <AnimatedGradientBackground tier={scoreResult.tier}>
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px calc(60px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Droplets size={22} color="#FFFFFF" />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Hydration Tracker</h1>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Droplets size={20} color="#FFFFFF" />
+          </div>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF', margin: 0 }}>Hydration Tracker</h1>
+            <p style={{ fontSize: 11, color: '#A1A1AA', margin: 0 }}>Weather-adaptive fluid requirement system</p>
+          </div>
         </div>
 
-        {/* ── Water Ring ── */}
-        <GlassCard elevation="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 28 }}>
-          <div style={{ position: 'relative', width: 220, height: 220 }}>
-            <svg width="220" height="220" viewBox="0 0 240 240" style={{ transform: 'rotate(-90deg)' }}>
+        {/* ── Weather & Hydration Target Overview Card ── */}
+        <GlassCard>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CloudSun size={18} color="#FFFFFF" />
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>
+                Weather Condition Impact ({currentTemp.toFixed(1)}°C)
+              </span>
+            </div>
+            <span style={{
+              fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#FFFFFF',
+            }}>
+              {scoreResult.tier.toUpperCase()} RISK
+            </span>
+          </div>
+
+          <div style={{
+            padding: '12px 14px', borderRadius: 14,
+            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)',
+            display: 'flex', flexDirection: 'column', gap: 8,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', textTransform: 'uppercase' }}>
+                  Weather-Recommended Target
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>
+                  {weatherRecommendedGoal.toLocaleString()} ml <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 600 }}>(+{tempAdjustmentMl}ml for heat)</span>
+                </div>
+              </div>
+
+              {userGoal !== weatherRecommendedGoal && (
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleSetUserGoal(weatherRecommendedGoal)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 10, fontSize: 11, fontWeight: 800,
+                    background: '#FFFFFF', color: '#000000', border: 'none', cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Apply Weather Target
+                </motion.button>
+              )}
+            </div>
+
+            <div style={{ fontSize: 11, color: '#A1A1AA', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 8 }}>
+              PROMPT: Hydration content is dynamically calculated based on temperature ({currentTemp.toFixed(1)}°C) and user weight ({weightKg}kg).
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* ── Water Ring Progress Card ── */}
+        <GlassCard elevation="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
+          <div style={{ position: 'relative', width: 210, height: 210 }}>
+            <svg width="210" height="210" viewBox="0 0 240 240" style={{ transform: 'rotate(-90deg)' }}>
               <circle cx="120" cy="120" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="16" />
               <motion.circle
                 cx="120" cy="120" r={radius} fill="none"
-                stroke={pct >= 100 ? '#10B981' : 'url(#waterGrad)'}
+                stroke={pct >= 100 ? '#FFFFFF' : 'url(#waterGrad)'}
                 strokeWidth="16" strokeLinecap="round"
                 strokeDasharray={circumference}
                 animate={{ strokeDashoffset: offset }}
@@ -150,14 +271,14 @@ export function HydrationTracker() {
               textAlign: 'center',
             }}>
               {pct >= 100 ? (
-                <div style={{ fontSize: 28, fontWeight: 900, color: '#10B981' }}>🎉 Goal!</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: '#FFFFFF' }}>Target Reached!</div>
               ) : (
                 <>
                   <GlassWater size={24} color="#FFFFFF" />
                   <div style={{ fontSize: 34, fontWeight: 900, color: '#FFFFFF', marginTop: 2 }}>{pct}%</div>
                 </>
               )}
-              <div style={{ fontSize: 12, color: '#A1A1AA' }}>{intakeMl.toLocaleString()} / {goal.toLocaleString()} ml</div>
+              <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 2 }}>{intakeMl.toLocaleString()} / {activeGoal.toLocaleString()} ml</div>
             </div>
           </div>
 
@@ -185,8 +306,8 @@ export function HydrationTracker() {
           {PRESETS.map((ml) => (
             <motion.button
               key={ml}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => addWater(ml)}
               style={{
                 flex: 1, padding: '14px 0', borderRadius: 18, fontWeight: 800, fontSize: 15,
@@ -204,11 +325,11 @@ export function HydrationTracker() {
         <GlassCard>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <input
-              type="number" placeholder="Custom ml" value={customMl}
+              type="number" placeholder="Custom intake ml" value={customMl}
               onChange={(e) => setCustomMl(e.target.value)}
               style={{
                 flex: 1, padding: '12px 14px', borderRadius: 14,
-                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)',
+                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
                 color: '#FFF', fontSize: 14, outline: 'none',
               }}
             />
@@ -228,25 +349,25 @@ export function HydrationTracker() {
           </div>
         </GlassCard>
 
-        {/* ── Goal & Reminder Settings ── */}
+        {/* ── Set Daily Water Limit & Reminder Settings ── */}
         <GlassCard>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Daily Goal */}
+            {/* Set Daily Water Limit */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={16} color="#A78BFA" />
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Daily Goal</span>
+                <Target size={16} color="#FFFFFF" />
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Set Daily Water Limit</span>
               </div>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowGoalPicker((p) => !p)}
                 style={{
                   padding: '6px 14px', borderRadius: 10, fontSize: 13, fontWeight: 800,
-                  background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.4)',
-                  color: '#A78BFA', cursor: 'pointer',
+                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+                  color: '#FFFFFF', cursor: 'pointer',
                 }}
               >
-                {goal.toLocaleString()} ml
+                {userGoal.toLocaleString()} ml
               </motion.button>
             </div>
 
@@ -259,12 +380,12 @@ export function HydrationTracker() {
                   {GOAL_OPTIONS.map((g) => (
                     <motion.button
                       key={g} whileTap={{ scale: 0.95 }}
-                      onClick={() => handleSetGoal(g)}
+                      onClick={() => handleSetUserGoal(g)}
                       style={{
                         padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                        background: goal === g ? 'rgba(167,139,250,0.3)' : 'rgba(255,255,255,0.06)',
-                        border: `1px solid ${goal === g ? '#A78BFA' : 'rgba(255,255,255,0.12)'}`,
-                        color: goal === g ? '#A78BFA' : '#A1A1AA', cursor: 'pointer',
+                        background: userGoal === g ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
+                        border: `1px solid ${userGoal === g ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                        color: userGoal === g ? '#000000' : '#A1A1AA', cursor: 'pointer',
                       }}
                     >
                       {g.toLocaleString()} ml
@@ -277,20 +398,20 @@ export function HydrationTracker() {
             {/* Reminder Toggle */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {remindersOn ? <Bell size={16} color="#10B981" /> : <BellOff size={16} color="#52525B" />}
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Water Reminders</span>
+                {remindersOn ? <Bell size={16} color="#FFFFFF" /> : <BellOff size={16} color="#52525B" />}
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Mobile Notifications</span>
               </div>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleToggleReminders}
                 style={{
                   padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                  background: remindersOn ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${remindersOn ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.12)'}`,
-                  color: remindersOn ? '#10B981' : '#52525B', cursor: 'pointer',
+                  background: remindersOn ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${remindersOn ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                  color: remindersOn ? '#FFFFFF' : '#71717A', cursor: 'pointer',
                 }}
               >
-                {remindersOn ? 'ON' : 'OFF'}
+                {remindersOn ? 'ACTIVE' : 'OFF'}
               </motion.button>
             </div>
 
@@ -299,19 +420,19 @@ export function HydrationTracker() {
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Clock size={16} color="#F59E0B" />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Remind every</span>
+                    <Clock size={16} color="#FFFFFF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Weather Reminder Interval</span>
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowIntervalPicker((p) => !p)}
                     style={{
                       padding: '6px 14px', borderRadius: 10, fontSize: 13, fontWeight: 800,
-                      background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)',
-                      color: '#F59E0B', cursor: 'pointer',
+                      background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+                      color: '#FFFFFF', cursor: 'pointer',
                     }}
                   >
-                    {intervalMin} min
+                    Every {intervalMin} min
                   </motion.button>
                 </div>
 
@@ -327,9 +448,9 @@ export function HydrationTracker() {
                           onClick={() => handleSetInterval(m)}
                           style={{
                             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                            background: intervalMin === m ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.06)',
-                            border: `1px solid ${intervalMin === m ? '#F59E0B' : 'rgba(255,255,255,0.12)'}`,
-                            color: intervalMin === m ? '#F59E0B' : '#A1A1AA', cursor: 'pointer',
+                            background: intervalMin === m ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
+                            border: `1px solid ${intervalMin === m ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                            color: intervalMin === m ? '#000000' : '#A1A1AA', cursor: 'pointer',
                           }}
                         >
                           {m} min
@@ -339,8 +460,26 @@ export function HydrationTracker() {
                   )}
                 </AnimatePresence>
 
-                <p style={{ fontSize: 11, color: '#52525B', lineHeight: 1.4 }}>
-                  💡 You'll receive notifications on your phone reminding you to drink water every {intervalMin} minutes between 7 AM — 10 PM.
+                {/* ── Test Mobile Push Notification Button ── */}
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={handleSendTestNotification}
+                  type="button"
+                  style={{
+                    padding: '12px', borderRadius: 14, cursor: 'pointer',
+                    background: testSent ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: '#FFFFFF', fontWeight: 800, fontSize: 13,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    marginTop: 4,
+                  }}
+                >
+                  {testSent ? <Check size={16} color="#FFFFFF" /> : <Send size={16} color="#FFFFFF" />}
+                  {testSent ? 'Mobile Weather Notification Sent!' : 'Send Test Mobile Weather Notification'}
+                </motion.button>
+
+                <p style={{ fontSize: 11, color: '#A1A1AA', lineHeight: 1.4, margin: 0 }}>
+                  PROMPT: Mobile push notifications automatically send weather alerts based on live temperature ({currentTemp.toFixed(1)}°C) every {intervalMin} minutes.
                 </p>
               </>
             )}
@@ -350,15 +489,15 @@ export function HydrationTracker() {
         {/* ── Today's Log History ── */}
         <GlassCard>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ fontWeight: 700, color: '#A1A1AA', fontSize: 14 }}>Today's Log</h3>
+            <h3 style={{ fontWeight: 700, color: '#A1A1AA', fontSize: 14, margin: 0 }}>Today's Fluid Log</h3>
             <motion.button whileTap={{ scale: 0.9 }} onClick={resetToday}
               style={{ background: 'none', border: 'none', color: '#71717A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
               <RotateCcw size={12} /> Reset
             </motion.button>
           </div>
           {logs.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#52525B', textAlign: 'center', padding: '16px 0' }}>
-              No water logged today. Tap a button above to start! 💧
+            <p style={{ fontSize: 13, color: '#52525B', textAlign: 'center', padding: '16px 0', margin: 0 }}>
+              No water logged today. Tap a quick-log button above to record intake.
             </p>
           ) : (
             logs.map((log, i) => (

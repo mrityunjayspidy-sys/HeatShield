@@ -298,7 +298,7 @@ export default function App() {
             />
           )}
           {tab === 'alerts' && <AlertsHistory userSession={activeSession} weather={weather} />}
-          {tab === 'hydration' && <HydrationTracker />}
+          {tab === 'hydration' && <HydrationTracker userSession={activeSession} weather={weather} />}
           {tab === 'work' && (
             <YourWorkPage
               checkIn={dailyCheckIn}

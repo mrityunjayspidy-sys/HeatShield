@@ -185,11 +185,11 @@ export function Dashboard({
               onClick={() => setShowLocationSearch((p) => !p)}
               style={{
                 width: 38, height: 38, borderRadius: '50%',
-                background: showLocationSearch ? 'rgba(167,139,250,0.25)' : 'rgba(255,255,255,0.1)',
+                background: showLocationSearch ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)',
-                border: `1px solid ${showLocationSearch ? 'rgba(167,139,250,0.5)' : 'rgba(255,255,255,0.2)'}`,
+                border: `1px solid ${showLocationSearch ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                color: showLocationSearch ? '#A78BFA' : '#FFF',
+                color: '#FFF',
               }}
             >
               <Search size={16} />
@@ -230,11 +230,11 @@ export function Dashboard({
               style={{ overflow: 'hidden' }}
             >
               <GlassCard style={{ padding: '14px 16px' }}>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#A78BFA', marginBottom: 10 }}>
-                  🔍 Check heat risk in another city
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#A1A1AA', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Search size={13} color="#FFFFFF" /> Check heat risk in another city
                 </p>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <Search size={15} color="#64748B" style={{ position: 'absolute', left: 12 }} />
+                  <Search size={15} color="#A1A1AA" style={{ position: 'absolute', left: 12 }} />
                   <input
                     autoFocus
                     type="text"
@@ -243,7 +243,7 @@ export function Dashboard({
                     onChange={(e) => setLocationQuery(e.target.value)}
                     style={{
                       width: '100%', padding: '11px 14px 11px 38px', borderRadius: 12,
-                      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(167,139,250,0.4)',
+                      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.3)',
                       color: '#FFF', fontSize: 13, outline: 'none',
                     }}
                   />
@@ -333,10 +333,10 @@ export function Dashboard({
           <GlassChip icon={Droplets} label="Humidity" value={`${currentHumidity}%`} color="#FFFFFF" />
           <GlassChip icon={Sun} label="UV Index" value={`${currentUv}`} color="#FFFFFF" />
           {weather?.windSpeedKmh !== undefined && weather.windSpeedKmh > 0 && (
-            <GlassChip icon={Wind} label="Wind" value={`${weather.windSpeedKmh} km/h`} color="#A78BFA" />
+            <GlassChip icon={Wind} label="Wind" value={`${weather.windSpeedKmh} km/h`} color="#E4E4E7" />
           )}
           {weather?.precipMm !== undefined && weather.precipMm > 0 && (
-            <GlassChip icon={CloudRain} label="Rain" value={`${weather.precipMm.toFixed(1)} mm`} color="#60A5FA" />
+            <GlassChip icon={CloudRain} label="Rain" value={`${weather.precipMm.toFixed(1)} mm`} color="#E4E4E7" />
           )}
           {weather?.weatherCondition && (() => {
             const cl = conditionLabel(weather.weatherCondition);
@@ -346,7 +346,6 @@ export function Dashboard({
                 background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
                 whiteSpace: 'nowrap', flexShrink: 0,
               }}>
-                <span style={{ fontSize: 13 }}>{cl.emoji}</span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>{cl.label}</span>
               </div>
             );

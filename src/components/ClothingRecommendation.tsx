@@ -528,8 +528,12 @@ export function ClothingRecommendation({
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
-                  <span style={{ color: '#E4E4E7', fontWeight: 700 }}>☀️ Reflects {active.reflectPct}% heat</span>
-                  <span style={{ color: '#A1A1AA', fontWeight: 700 }}>🔥 Absorbs {active.absorbPct}% heat</span>
+                  <span style={{ color: '#E4E4E7', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Sun size={12} color="#FFFFFF" /> Reflects {active.reflectPct}% heat
+                  </span>
+                  <span style={{ color: '#A1A1AA', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Shirt size={12} color="#A1A1AA" /> Absorbs {active.absorbPct}% heat
+                  </span>
                 </div>
                 <p style={{ fontSize: 11, color: '#A1A1AA', margin: 0, lineHeight: 1.5 }}>
                   {active.desc}
@@ -542,13 +546,13 @@ export function ClothingRecommendation({
 
       {/* Condition chips */}
       <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 14 }}>
-        <CondChip icon={<Thermometer size={11} color="#F59E0B" />} label={formatTemp(tempC, tempUnit)} />
-        {uvIndex > 0 && <CondChip icon={<Sun size={11} color="#FBBF24" />} label={`UV ${uvIndex} ${uvLabel}`} />}
-        {windSpeedKmh > 5 && <CondChip icon={<Wind size={11} color="#A78BFA" />} label={`${windSpeedKmh} km/h wind`} />}
-        {precipMm > 0 && <CondChip icon={<CloudRain size={11} color="#60A5FA" />} label={`${precipMm.toFixed(1)} mm rain`} />}
-        {humidityPct > 0 && <CondChip icon={<span style={{ fontSize: 9 }}>💧</span>} label={`${humidityPct}% humidity`} />}
-        {skinType && <CondChip icon={<span style={{ fontSize: 9 }}>🧬</span>} label={`Skin Type ${skinType}`} />}
-        {scenario === 'snowy' && <CondChip icon={<Snowflake size={11} color="#BAE6FD" />} label="Snow" />}
+        <CondChip icon={<Thermometer size={11} color="#FFFFFF" />} label={formatTemp(tempC, tempUnit)} />
+        {uvIndex > 0 && <CondChip icon={<Sun size={11} color="#FFFFFF" />} label={`UV ${uvIndex} ${uvLabel}`} />}
+        {windSpeedKmh > 5 && <CondChip icon={<Wind size={11} color="#A1A1AA" />} label={`${windSpeedKmh} km/h wind`} />}
+        {precipMm > 0 && <CondChip icon={<CloudRain size={11} color="#A1A1AA" />} label={`${precipMm.toFixed(1)} mm rain`} />}
+        {humidityPct > 0 && <CondChip icon={<Droplets size={11} color="#FFFFFF" />} label={`${humidityPct}% humidity`} />}
+        {skinType && <CondChip icon={<Shirt size={11} color="#A1A1AA" />} label={`Skin Type ${skinType}`} />}
+        {scenario === 'snowy' && <CondChip icon={<Snowflake size={11} color="#FFFFFF" />} label="Snow" />}
       </div>
 
       {/* Item list */}

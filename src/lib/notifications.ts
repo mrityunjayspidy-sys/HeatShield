@@ -1,17 +1,28 @@
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 // ── Permission ────────────────────────────────────────────────────────────────
+// ── Permission ────────────────────────────────────────────────────────────────
 export async function requestNotificationPermission(): Promise<boolean> {
   try {
+    // Try Capacitor LocalNotifications first
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display === 'granted') return true;
 
     const req = await LocalNotifications.requestPermissions();
-    return req.display === 'granted';
-  } catch (e) {
-    console.warn('Notification permission note:', e);
-    return false;
+    if (req.display === 'granted') return true;
+  } catch {
+    // Fall back to Web Notification API
   }
+
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission !== 'denied') {
+      const res = await Notification.requestPermission();
+      return res === 'granted';
+    }
+  }
+
+  return false;
 }
 
 // ── Hydration Reminders ───────────────────────────────────────────────────────
@@ -24,11 +35,15 @@ const HYDRATION_NOTIFICATION_BASE_ID = 9000;
  * @param intervalMinutes — how often to remind (e.g., 45 minutes)
  * @param dailyGoalMl — daily water goal (e.g., 3000)
  * @param currentMl — current intake so far
+ * @param weatherTempC — optional live weather temperature
+ * @param heatTier — optional heat risk tier
  */
 export async function scheduleHydrationReminders(
   intervalMinutes: number,
   dailyGoalMl: number,
   currentMl: number,
+  weatherTempC?: number,
+  heatTier?: string,
 ): Promise<void> {
   const hasPermission = await requestNotificationPermission();
   if (!hasPermission) return;
@@ -52,6 +67,7 @@ export async function scheduleHydrationReminders(
 
   const remaining = Math.max(0, dailyGoalMl - currentMl);
   const glassesLeft = Math.ceil(remaining / 250);
+  const tempStr = weatherTempC ? `${weatherTempC.toFixed(0)}°C` : 'current';
 
   // Schedule notifications for the next 14 hours (typical waking hours)
   const maxNotifications = Math.min(14, Math.floor((14 * 60) / intervalMinutes));
@@ -66,16 +82,16 @@ export async function scheduleHydrationReminders(
     if (triggerAt.getHours() < 7) continue;
 
     const messages = [
-      `💧 Time to hydrate! You have ${glassesLeft} glasses left today.`,
-      `🥤 Stay cool! Drink some water — ${remaining}ml to go!`,
-      `💦 Water break! Keep your hydration on track.`,
-      `🌡️ Heat alert! Drinking water helps regulate your body temperature.`,
-      `💧 Your body needs water! ${Math.round((currentMl / dailyGoalMl) * 100)}% of your goal reached.`,
+      `Weather Hydration Alert (${tempStr}): Drink 250ml water now! ${glassesLeft} glasses left today.`,
+      `Stay cool in ${tempStr} heat! Drink water — ${remaining}ml left for your goal.`,
+      `Water Break: Heat index requires steady hydration.`,
+      `${heatTier ? heatTier.toUpperCase() + ' risk' : 'Heat Risk'}: Drink water to regulate body temperature in ${tempStr} weather.`,
+      `Hydration Check: ${Math.round((currentMl / dailyGoalMl) * 100)}% of your target reached today.`,
     ];
 
     notifications.push({
       id: HYDRATION_NOTIFICATION_BASE_ID + i,
-      title: 'HeatWatch — Drink Water 💧',
+      title: `HeatWatch — Drink Water (${tempStr})`,
       body: messages[i % messages.length],
       schedule: { at: triggerAt },
       channelId: HYDRATION_CHANNEL_ID,
@@ -85,8 +101,12 @@ export async function scheduleHydrationReminders(
   }
 
   if (notifications.length > 0) {
-    await LocalNotifications.schedule({ notifications });
-    console.log(`✅ Scheduled ${notifications.length} hydration reminders every ${intervalMinutes}min`);
+    try {
+      await LocalNotifications.schedule({ notifications });
+      console.log(`Scheduled ${notifications.length} weather hydration reminders every ${intervalMinutes}min`);
+    } catch (e) {
+      console.warn('Native notification schedule note:', e);
+    }
   }
 }
 
@@ -115,16 +135,24 @@ export async function sendLocalNotification(
   const hasPermission = await requestNotificationPermission();
   if (!hasPermission) return;
 
-  await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: id ?? Math.floor(Math.random() * 10000),
-        title,
-        body,
-        schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
-        smallIcon: 'ic_launcher',
-        largeIcon: 'ic_launcher',
-      },
-    ],
-  });
+  try {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: id ?? Math.floor(Math.random() * 10000),
+          title,
+          body,
+          schedule: { at: new Date(Date.now() + 1000) }, // 1 second from now
+          smallIcon: 'ic_launcher',
+          largeIcon: 'ic_launcher',
+        },
+      ],
+    });
+  } catch {
+    // Web fallback if Capacitor plugin is unavailable or fails
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body });
+    }
+  }
 }
+
