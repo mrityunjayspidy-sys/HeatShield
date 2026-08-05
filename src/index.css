@@ -51,49 +51,4 @@ input, textarea, [contenteditable="true"] {
   }
 }
 
-/* ── Light Mode Styles ──────────────────────────────────────────────────────── */
-html.light-mode, body.light-mode, .light-mode #root {
-  background: #F8FAFC !important;
-  color: #0F172A !important;
-}
-
-.light-mode [data-glass-card], .light-mode .glass-card {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border-color: rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  color: #0F172A !important;
-}
-
-.light-mode h1, .light-mode h2, .light-mode h3, .light-mode h4, .light-mode h5, .light-mode strong {
-  color: #0F172A !important;
-}
-
-.light-mode p, .light-mode span:not([data-keep-color]) {
-  color: #334155;
-}
-
-.light-mode input, .light-mode textarea {
-  background: rgba(0, 0, 0, 0.05) !important;
-  border-color: rgba(0, 0, 0, 0.18) !important;
-  color: #0F172A !important;
-}
-
-.light-mode input::placeholder {
-  color: #64748B !important;
-}
-
-.light-mode .dock-panel {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border-color: rgba(0, 0, 0, 0.15) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1) !important;
-}
-
-.light-mode .dock-item {
-  color: #334155 !important;
-}
-
-.light-mode .dock-item:hover, .light-mode .dock-item[data-active="true"] {
-  color: #0F172A !important;
-}
-
 

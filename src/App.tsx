@@ -43,21 +43,6 @@ export default function App() {
   const [tempUnit, setTempUnit] = useState<'C' | 'F'>(() => {
     return (localStorage.getItem('heatwatch_temp_unit') as 'C' | 'F') || 'C';
   });
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const stored = localStorage.getItem('heatwatch_dark_mode');
-    return stored !== null ? stored === 'true' : true;
-  });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.remove('light-mode');
-      document.body.classList.remove('light-mode');
-    } else {
-      document.documentElement.classList.add('light-mode');
-      document.body.classList.add('light-mode');
-    }
-    localStorage.setItem('heatwatch_dark_mode', String(darkMode));
-  }, [darkMode]);
 
   // Always default to Home tab when opening/resuming the app
   const [tab, setTab] = useState<Tab>('home');
@@ -335,12 +320,7 @@ export default function App() {
             />
           )}
           {tab === 'settings' && (
-            <SettingsPage
-              tempUnit={tempUnit}
-              onTempUnitChange={handleTempUnitChange}
-              darkMode={darkMode}
-              onDarkModeChange={(val) => setDarkMode(val)}
-            />
+            <SettingsPage tempUnit={tempUnit} onTempUnitChange={handleTempUnitChange} />
           )}
         </motion.div>
       </AnimatePresence>

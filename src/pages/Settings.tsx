@@ -46,24 +46,10 @@ const FEATURE_OPTIONS = [
 interface SettingsPageProps {
   tempUnit: 'C' | 'F';
   onTempUnitChange: (unit: 'C' | 'F') => void;
-  darkMode?: boolean;
-  onDarkModeChange?: (val: boolean) => void;
 }
 
-export function SettingsPage({ tempUnit, onTempUnitChange, darkMode: propDarkMode, onDarkModeChange }: SettingsPageProps) {
+export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) {
   // ── Existing settings ──────────────────────────────────────────────────────
-  const [internalDarkMode, setInternalDarkMode] = useState(true);
-  const darkMode = propDarkMode !== undefined ? propDarkMode : internalDarkMode;
-
-  const handleToggleDarkMode = () => {
-    const next = !darkMode;
-    if (onDarkModeChange) {
-      onDarkModeChange(next);
-    } else {
-      setInternalDarkMode(next);
-    }
-  };
-
   const [notifications, setNotifications] = useState(true);
   const [location, setLocation]         = useState(true);
 
@@ -159,15 +145,6 @@ export function SettingsPage({ tempUnit, onTempUnitChange, darkMode: propDarkMod
           <SettingsIcon size={22} color="#CBD5E1" />
           <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Settings</h1>
         </div>
-
-        {/* ── Appearance ── */}
-        <GlassCard>
-          <h3 style={{ fontSize: 13, fontWeight: 800, color: '#A1A1AA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
-            Appearance
-          </h3>
-          <SettingRow icon={Moon} label="Dark Mode" description="Glassmorphism theme selector"
-            right={<GlassToggle active={darkMode} onToggle={handleToggleDarkMode} />} />
-        </GlassCard>
 
         {/* ── Notifications & Location ── */}
         <GlassCard>
