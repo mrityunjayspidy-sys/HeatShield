@@ -44,6 +44,8 @@ export default function App() {
     return (localStorage.getItem('heatwatch_temp_unit') as 'C' | 'F') || 'C';
   });
 
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
   // Always default to Home tab when opening/resuming the app
   const [tab, setTab] = useState<Tab>('home');
   const [showExitModal, setShowExitModal] = useState<boolean>(false);
@@ -438,27 +440,30 @@ export default function App() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <button
+                    disabled={loadingLocation}
                     onClick={async () => {
+                      setLoadingLocation(true);
                       try {
                         const coords = await getCurrentCoordinates();
-                        if (coords.latitude !== 28.6139 || coords.longitude !== 77.2090) {
-                          setShowLocationModal(false);
-                          const data = await fetchLiveWeather(coords.latitude, coords.longitude);
-                          cacheWeather(data);
-                          setWeather(data);
-                        }
-                      } catch {
-                        // Still can't get location
+                        const data = await fetchLiveWeather(coords.latitude, coords.longitude);
+                        cacheWeather(data);
+                        setWeather(data);
+                      } catch (e) {
+                        console.warn('Location request note:', e);
+                      } finally {
+                        setLoadingLocation(false);
+                        setShowLocationModal(false);
                       }
                     }}
                     style={{
                       width: '100%', padding: '14px', borderRadius: 14,
-                      background: '#F59E0B', border: 'none',
-                      color: '#000', fontWeight: 900, fontSize: 15, cursor: 'pointer',
-                      boxShadow: '0 4px 16px rgba(245,158,11,0.4)',
+                      background: '#FFFFFF', border: 'none',
+                      color: '#000000', fontWeight: 900, fontSize: 15, cursor: loadingLocation ? 'wait' : 'pointer',
+                      boxShadow: '0 4px 16px rgba(255,255,255,0.2)',
+                      opacity: loadingLocation ? 0.7 : 1,
                     }}
                   >
-                    📍 Enable Location
+                    {loadingLocation ? 'Detecting Location...' : 'Enable Location'}
                   </button>
                   <button
                     onClick={() => setShowLocationModal(false)}

@@ -59,25 +59,34 @@ export function OutdoorTimeSuggestion({
   return (
     <GlassCard>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 10,
-          background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Clock size={18} color="#FFFFFF" />
-        </div>
-        <div>
-          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
-            Outdoor Time Schedule & Thermal Windows
-          </h3>
-          <p style={{ fontSize: 11, color: '#A1A1AA', margin: 0 }}>
-            Based on today's hourly forecast
-          </p>
-        </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
-          <TrendIcon size={14} color={trendColor} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: trendColor }}>{trendLabel}</span>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '1 1 200px' }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <Clock size={18} color="#FFFFFF" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF', margin: 0, lineHeight: 1.3 }}>
+                Outdoor Time Schedule &amp; Thermal Windows
+              </h3>
+              <p style={{ fontSize: 11, color: '#A1A1AA', margin: '2px 0 0 0' }}>
+                Based on today's hourly forecast
+              </p>
+            </div>
+          </div>
+
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
+            padding: '4px 10px', borderRadius: 20, flexShrink: 0,
+          }}>
+            <TrendIcon size={12} color={trendColor} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: trendColor }}>{trendLabel}</span>
+          </div>
         </div>
       </div>
 
@@ -111,9 +120,9 @@ export function OutdoorTimeSuggestion({
 
       {/* Best windows */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          <CheckCircle2 size={15} color="#FFFFFF" />
-          <p style={{ fontSize: 12, fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.7, margin: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+          <CheckCircle2 size={15} color="#FFFFFF" style={{ flexShrink: 0, marginTop: 2 }} />
+          <p style={{ fontSize: 11, fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0, lineHeight: 1.4 }}>
             RECOMMENDED OUTDOOR WINDOWS — LOW THERMAL STRESS
           </p>
         </div>
@@ -121,7 +130,7 @@ export function OutdoorTimeSuggestion({
           PROMPT: Optimal window for outdoor movement and activities. Thermal load and heat index are minimal.
         </p>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 }}>
           {bestWindows.map((slot, i) => (
             <motion.div
               key={i}
@@ -129,20 +138,21 @@ export function OutdoorTimeSuggestion({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.08 }}
               style={{
-                flex: 1, minWidth: 110, padding: '12px 14px', borderRadius: 14,
+                padding: '12px 14px', borderRadius: 14,
                 background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.3)',
+                display: 'flex', flexDirection: 'column', gap: 6,
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF' }}>{slot.hour}</div>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#000000', background: '#FFFFFF', padding: '2px 6px', borderRadius: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap' }}>{slot.hour}</div>
+                <span style={{ fontSize: 8, fontWeight: 800, color: '#000000', background: '#FFFFFF', padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>
                   RECOMMENDED
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: '#A1A1AA' }}>
                 {formatTemp(slot.tempC, tempUnit)} · Score {slot.score}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#FFFFFF', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <CheckCircle2 size={12} color="#FFFFFF" /> {TIER_BADGE[slot.tier].label}
               </div>
             </motion.div>
@@ -152,9 +162,9 @@ export function OutdoorTimeSuggestion({
 
       {/* Worst windows */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          <AlertTriangle size={15} color="#FFFFFF" />
-          <p style={{ fontSize: 12, fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.7, margin: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+          <AlertTriangle size={15} color="#FFFFFF" style={{ flexShrink: 0, marginTop: 2 }} />
+          <p style={{ fontSize: 11, fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.5, margin: 0, lineHeight: 1.4 }}>
             AVOID GOING OUT WINDOWS — HIGH THERMAL STRESS
           </p>
         </div>
@@ -162,7 +172,7 @@ export function OutdoorTimeSuggestion({
           PROMPT: High heat risk and extreme temperature hazard. Restrict outdoor exposure and remain in shaded or climate-controlled spaces.
         </p>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 }}>
           {worstWindows.map((slot, i) => (
             <motion.div
               key={i}
@@ -170,20 +180,21 @@ export function OutdoorTimeSuggestion({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.08 }}
               style={{
-                flex: 1, minWidth: 110, padding: '12px 14px', borderRadius: 14,
+                padding: '12px 14px', borderRadius: 14,
                 background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', flexDirection: 'column', gap: 6,
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: '#FFFFFF' }}>{slot.hour}</div>
-                <span style={{ fontSize: 9, fontWeight: 800, color: '#FFFFFF', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', padding: '2px 6px', borderRadius: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap' }}>{slot.hour}</div>
+                <span style={{ fontSize: 8, fontWeight: 800, color: '#FFFFFF', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap' }}>
                   AVOID OUTDOORS
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: '#A1A1AA', marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: '#A1A1AA' }}>
                 {formatTemp(slot.tempC, tempUnit)} · Score {slot.score}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#A1A1AA', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#A1A1AA', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <AlertTriangle size={12} color="#FFFFFF" /> {TIER_BADGE[slot.tier].label}
               </div>
             </motion.div>
