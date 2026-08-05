@@ -58,19 +58,19 @@ export function wmoToCondition(code: number): WeatherCondition {
   return 'partly_cloudy';
 }
 
-/** Human-readable condition label + emoji */
+/** Human-readable condition label */
 export function conditionLabel(c: WeatherCondition): { label: string; emoji: string } {
   const map: Record<WeatherCondition, { label: string; emoji: string }> = {
-    clear:         { label: 'Clear Sky',      emoji: '☀️'  },
-    partly_cloudy: { label: 'Partly Cloudy',  emoji: '⛅'  },
-    overcast:      { label: 'Overcast',       emoji: '☁️'  },
-    drizzle:       { label: 'Drizzle',        emoji: '🌦️' },
-    rain:          { label: 'Rain',           emoji: '🌧️' },
-    heavy_rain:    { label: 'Heavy Rain',     emoji: '⛈️' },
-    snow:          { label: 'Snow',           emoji: '❄️'  },
-    thunderstorm:  { label: 'Thunderstorm',   emoji: '⛈️' },
-    foggy:         { label: 'Foggy',          emoji: '🌫️' },
-    windy:         { label: 'Windy',          emoji: '💨'  },
+    clear:         { label: 'Clear Sky',      emoji: '' },
+    partly_cloudy: { label: 'Partly Cloudy',  emoji: '' },
+    overcast:      { label: 'Overcast',       emoji: '' },
+    drizzle:       { label: 'Drizzle',        emoji: '' },
+    rain:          { label: 'Rain',           emoji: '' },
+    heavy_rain:    { label: 'Heavy Rain',     emoji: '' },
+    snow:          { label: 'Snow',           emoji: '' },
+    thunderstorm:  { label: 'Thunderstorm',   emoji: '' },
+    foggy:         { label: 'Foggy',          emoji: '' },
+    windy:         { label: 'Windy',          emoji: '' },
   };
   return map[c];
 }

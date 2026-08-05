@@ -5,7 +5,10 @@
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, ChevronDown, ChevronUp, Sun, Wind, Thermometer, CloudRain, Snowflake, Droplets } from 'lucide-react';
+import {
+  Shirt, ChevronDown, ChevronUp, Sun, Wind, Thermometer, CloudRain, Snowflake, Droplets,
+  ShieldCheck, Palette, Umbrella, Footprints, Flame, Cloud, Eye, Glasses,
+} from 'lucide-react';
 import { GlassCard } from './ui/GlassCard';
 import type { RiskTier } from '../lib/scoring';
 import type { WeatherCondition } from '../lib/weather';
@@ -58,7 +61,20 @@ function classifyScenario(
   return 'hot_sunny';
 }
 
-// ── Clothing item DB ───────────────────────────────────────────────────────────
+// Helper to render appropriate SVG icon per item
+function ItemIcon({ id }: { id: string }) {
+  if (id.includes('umbrella')) return <Umbrella size={18} color="#FFFFFF" />;
+  if (id.includes('shoe') || id.includes('boot') || id.includes('sandal')) return <Footprints size={18} color="#FFFFFF" />;
+  if (id.includes('glass') || id.includes('goggle')) return <Glasses size={18} color="#FFFFFF" />;
+  if (id.includes('rain') || id.includes('waterproof')) return <CloudRain size={18} color="#FFFFFF" />;
+  if (id.includes('wind') || id.includes('scarf')) return <Wind size={18} color="#FFFFFF" />;
+  if (id.includes('upf') || id.includes('guard') || id.includes('glove')) return <ShieldCheck size={18} color="#FFFFFF" />;
+  if (id.includes('snow') || id.includes('hat') || id.includes('wool')) return <Snowflake size={18} color="#FFFFFF" />;
+  if (id.includes('towel') || id.includes('cooling')) return <Droplets size={18} color="#FFFFFF" />;
+  return <Shirt size={18} color="#FFFFFF" />;
+}
+
+// ── Item DB ───────────────────────────────────────────────────────────
 interface ClothingItem {
   id: string;
   emoji: string;
@@ -66,13 +82,13 @@ interface ClothingItem {
   material: string;
   description: string;
   tip: string;
-  scenarios: WeatherScenario[];      // which scenarios this item applies to
+  scenarios: WeatherScenario[];
   heatAbsorption: 'very low' | 'low' | 'moderate' | 'high';
   uvProtection: 'none' | 'low' | 'moderate' | 'high' | 'max';
   rainproof?: boolean;
   windproof?: boolean;
   warmth?: 'none' | 'light' | 'moderate' | 'high';
-  priority?: number;                  // higher = show first
+  priority?: number;
   skinTypesPreferred?: string[];
   minUvFor?: number;
 }
@@ -81,7 +97,7 @@ const ALL_ITEMS: ClothingItem[] = [
   // ── EXTREME HEAT & HOT SUNNY ──────────────────────────────────────────────
   {
     id: 'linen_shirt',
-    emoji: '👕', name: 'White Linen Shirt', material: '100% Linen',
+    emoji: '', name: 'White Linen Shirt', material: '100% Linen',
     heatAbsorption: 'very low', uvProtection: 'moderate', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny', 'warm_humid', 'warm_cloudy'],
     description: 'Extremely breathable natural fibre. Reflects sunlight, wicks sweat, and dries fast.',
@@ -90,7 +106,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'upf50_tee',
-    emoji: '🛡️', name: 'UPF 50+ UV-Shield Tee', material: 'Performance polyester blend',
+    emoji: '', name: 'UPF 50+ UV-Shield Tee', material: 'Performance polyester blend',
     heatAbsorption: 'low', uvProtection: 'max', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny'],
     description: 'Blocks 98% of UV rays while remaining lightweight and moisture-wicking.',
@@ -99,7 +115,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'wide_brim_hat',
-    emoji: '👒', name: 'Wide-Brim Sun Hat', material: 'Straw / UPF-rated fabric',
+    emoji: '', name: 'Wide-Brim Sun Hat', material: 'Straw / UPF-rated fabric',
     heatAbsorption: 'very low', uvProtection: 'high', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny', 'warm_humid', 'warm_cloudy'],
     description: 'Shades face, neck, and ears from direct UV exposure.',
@@ -108,7 +124,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'uv400_sunglasses',
-    emoji: '🕶️', name: 'UV400 Wraparound Sunglasses', material: 'Polycarbonate lens',
+    emoji: '', name: 'UV400 Wraparound Sunglasses', material: 'Polycarbonate lens',
     heatAbsorption: 'very low', uvProtection: 'max', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny', 'warm_cloudy'],
     description: 'Full UV400 protection blocks UVA and UVB. Prevents cataracts and heat glare fatigue.',
@@ -117,7 +133,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'loose_light_trousers',
-    emoji: '👖', name: 'Loose Light-Coloured Trousers', material: 'Linen or lightweight cotton',
+    emoji: '', name: 'Loose Light-Coloured Trousers', material: 'Linen or lightweight cotton',
     heatAbsorption: 'low', uvProtection: 'moderate', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny'],
     description: 'Full leg coverage from sun while loose fit allows air to circulate freely.',
@@ -126,7 +142,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'mesh_shorts',
-    emoji: '🩳', name: 'Breathable Mesh Shorts', material: 'Mesh polyester',
+    emoji: '', name: 'Breathable Mesh Shorts', material: 'Mesh polyester',
     heatAbsorption: 'low', uvProtection: 'none', warmth: 'none',
     scenarios: ['hot_sunny', 'warm_humid'],
     description: 'Maximum airflow for legs. Ideal when UV is moderate and heat is extreme.',
@@ -135,7 +151,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'cooling_towel',
-    emoji: '🧣', name: 'PVA Cooling Neck Wrap', material: 'PVA cooling fabric',
+    emoji: '', name: 'PVA Cooling Neck Wrap', material: 'PVA cooling fabric',
     heatAbsorption: 'very low', uvProtection: 'none', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny', 'warm_humid'],
     description: 'Wet and drape around neck. Lowers apparent body temperature by 1–2°C instantly.',
@@ -144,7 +160,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'rash_guard',
-    emoji: '🦺', name: 'UPF 50+ Rash Guard / Arm Sleeves', material: 'UPF 50+ Lycra',
+    emoji: '', name: 'UPF 50+ Rash Guard / Arm Sleeves', material: 'UPF 50+ Lycra',
     heatAbsorption: 'low', uvProtection: 'max', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny'],
     description: 'Full arm coverage without sunscreen. Critical for prolonged outdoor exposure.',
@@ -153,56 +169,36 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'open_sandals',
-    emoji: '👡', name: 'Breathable Open Sandals', material: 'Leather / mesh strap',
+    emoji: '', name: 'Breathable Open Sandals', material: 'Leather / mesh strap',
     heatAbsorption: 'very low', uvProtection: 'none', warmth: 'none',
     scenarios: ['extreme_heat', 'hot_sunny', 'warm_humid'],
     description: 'Full foot ventilation. Feet are an underrated heat release point.',
     tip: 'Avoid dark rubber soles — asphalt can reach 60°C+ on hot days, transferring heat up.',
-    priority: 5,
+    priority: 8,
   },
 
-  // ── HUMID / WARM CLOUDY ────────────────────────────────────────────────────
+  // ── WARM HUMID & RAINY ───────────────────────────────────────────────────
   {
-    id: 'moisture_wicking',
-    emoji: '💧', name: 'Moisture-Wicking Sport Tee', material: 'Polyester Dri-Fit',
-    heatAbsorption: 'low', uvProtection: 'low', warmth: 'none',
-    scenarios: ['warm_humid', 'warm_cloudy'],
-    description: 'Pulls sweat away from skin and dries fast. Essential in high-humidity conditions.',
-    tip: 'In high humidity, cotton becomes heavy and clingy. Dri-Fit fabrics outperform by 40%.',
-    priority: 10,
-  },
-  {
-    id: 'anti_fungal_socks',
-    emoji: '🧦', name: 'Anti-Microbial Dry-Fit Socks', material: 'Bamboo fibre blend',
-    heatAbsorption: 'low', uvProtection: 'none', warmth: 'light',
-    scenarios: ['warm_humid', 'rainy'],
-    description: 'Prevents moisture build-up in shoes. Reduces risk of fungal infections in humid heat.',
-    tip: 'Bamboo socks are 3x more absorbent than cotton and naturally anti-microbial.',
-    priority: 6,
-  },
-
-  // ── RAINY ─────────────────────────────────────────────────────────────────
-  {
-    id: 'waterproof_jacket',
-    emoji: '🧥', name: 'Waterproof Rain Jacket', material: 'Gore-Tex / PU shell',
-    heatAbsorption: 'moderate', uvProtection: 'low', warmth: 'light', rainproof: true,
+    id: 'rain_coat',
+    emoji: '', name: 'Waterproof Rain Jacket', material: 'Gore-Tex / PU shell',
+    heatAbsorption: 'moderate', uvProtection: 'moderate', warmth: 'light', rainproof: true,
     scenarios: ['rainy'],
-    description: 'Windproof and waterproof outer layer. Keeps core dry without restricting movement.',
-    tip: 'Sealed seams matter — look for "fully seam-taped" for heavy rain protection.',
+    description: 'Blocks rain and moisture while allowing sweat vapour to escape.',
+    tip: 'Look for pit-zips (underarm ventilation) to avoid overheating in warm rain.',
     priority: 12,
   },
   {
-    id: 'compact_umbrella',
-    emoji: '☂️', name: 'Compact UV-Blocking Umbrella', material: 'UV-coated polyester canopy',
+    id: 'umbrella',
+    emoji: '', name: 'Compact UV-Blocking Umbrella', material: 'UV-coated polyester canopy',
     heatAbsorption: 'very low', uvProtection: 'high', warmth: 'none', rainproof: true,
-    scenarios: ['rainy', 'warm_cloudy'],
-    description: 'Shields from both rain and UV. UV-coated umbrellas block up to 99% of UV rays.',
+    scenarios: ['rainy', 'hot_sunny'],
+    description: 'Dual use: blocks rain in wet weather and cuts direct solar UV radiation in sun.',
     tip: 'Dark-interior umbrellas reflect UV away better than white-interior ones.',
     priority: 11,
   },
   {
     id: 'waterproof_shoes',
-    emoji: '👟', name: 'Waterproof Trail Shoes', material: 'GORE-TEX lined upper',
+    emoji: '', name: 'Waterproof Trail Shoes', material: 'GORE-TEX lined upper',
     heatAbsorption: 'low', uvProtection: 'none', warmth: 'light', rainproof: true,
     scenarios: ['rainy', 'foggy'],
     description: 'Keeps feet dry and prevents slipping on wet surfaces.',
@@ -211,7 +207,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'quick_dry_shirt',
-    emoji: '🟦', name: 'Quick-Dry Long Sleeve Shirt', material: 'Nylon/polyester blend',
+    emoji: '', name: 'Quick-Dry Long Sleeve Shirt', material: 'Nylon/polyester blend',
     heatAbsorption: 'low', uvProtection: 'moderate', warmth: 'light', rainproof: false,
     scenarios: ['rainy', 'warm_cloudy'],
     description: 'Dries 4x faster than cotton when caught in rain. Stays comfortable all day.',
@@ -220,7 +216,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'waterproof_trousers',
-    emoji: '🫙', name: 'Waterproof Trousers', material: 'Ripstop nylon with DWR coating',
+    emoji: '', name: 'Waterproof Trousers', material: 'Ripstop nylon with DWR coating',
     heatAbsorption: 'moderate', uvProtection: 'moderate', warmth: 'light', rainproof: true,
     scenarios: ['rainy'],
     description: 'Lightweight rain over-trousers. Pack small and pull on over regular pants.',
@@ -231,7 +227,7 @@ const ALL_ITEMS: ClothingItem[] = [
   // ── COOL / COLD ───────────────────────────────────────────────────────────
   {
     id: 'light_fleece',
-    emoji: '🧶', name: 'Lightweight Fleece Jacket', material: 'Recycled polyester fleece',
+    emoji: '', name: 'Lightweight Fleece Jacket', material: 'Recycled polyester fleece',
     heatAbsorption: 'moderate', uvProtection: 'low', warmth: 'moderate',
     scenarios: ['cool', 'windy'],
     description: 'Traps body heat efficiently. Compresses into a pocket. Great wind-resistant mid-layer.',
@@ -240,7 +236,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'thermal_base',
-    emoji: '🔴', name: 'Thermal Base Layer', material: 'Merino wool / polypropylene',
+    emoji: '', name: 'Thermal Base Layer', material: 'Merino wool / polypropylene',
     heatAbsorption: 'moderate', uvProtection: 'low', warmth: 'high',
     scenarios: ['cold', 'snowy'],
     description: 'Wicks moisture while maintaining body warmth. The foundation of cold weather layering.',
@@ -249,7 +245,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'insulated_jacket',
-    emoji: '🧥', name: 'Insulated Puffer Jacket', material: 'Synthetic or down fill',
+    emoji: '', name: 'Insulated Puffer Jacket', material: 'Synthetic or down fill',
     heatAbsorption: 'high', uvProtection: 'low', warmth: 'high',
     scenarios: ['cold', 'snowy'],
     description: 'Traps air to insulate against extreme cold. Essential below 10°C.',
@@ -258,7 +254,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'wool_hat',
-    emoji: '🧢', name: 'Warm Beanie / Wool Hat', material: 'Merino wool or acrylic',
+    emoji: '', name: 'Warm Beanie / Wool Hat', material: 'Merino wool or acrylic',
     heatAbsorption: 'moderate', uvProtection: 'low', warmth: 'high',
     scenarios: ['cold', 'snowy'],
     description: 'Up to 40% of body heat is lost through the head. A warm hat is the most efficient warmer.',
@@ -267,7 +263,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'thermal_gloves',
-    emoji: '🧤', name: 'Thermal Gloves', material: 'Softshell / fleece-lined',
+    emoji: '', name: 'Thermal Gloves', material: 'Softshell / fleece-lined',
     heatAbsorption: 'moderate', uvProtection: 'none', warmth: 'high',
     scenarios: ['cold', 'snowy'],
     description: 'Protects extremities from cold and wind. Touchscreen-compatible tips available.',
@@ -276,7 +272,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'scarf',
-    emoji: '🧣', name: 'Wool Scarf / Neck Warmer', material: 'Merino wool',
+    emoji: '', name: 'Wool Scarf / Neck Warmer', material: 'Merino wool',
     heatAbsorption: 'moderate', uvProtection: 'none', warmth: 'moderate',
     scenarios: ['cold', 'cool', 'windy'],
     description: 'Protects neck and throat from cold wind exposure. Doubles as a face shield in extreme cold.',
@@ -285,7 +281,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'waterproof_boots',
-    emoji: '🥾', name: 'Insulated Waterproof Boots', material: 'Full-grain leather / synthetic shell',
+    emoji: '', name: 'Insulated Waterproof Boots', material: 'Full-grain leather / synthetic shell',
     heatAbsorption: 'moderate', uvProtection: 'none', warmth: 'high', rainproof: true,
     scenarios: ['cold', 'snowy', 'rainy'],
     description: 'Essential in snow or heavy rain. Insulation prevents frostbite in sub-zero conditions.',
@@ -296,27 +292,27 @@ const ALL_ITEMS: ClothingItem[] = [
   // ── WINDY ─────────────────────────────────────────────────────────────────
   {
     id: 'windbreaker',
-    emoji: '🌬️', name: 'Lightweight Windbreaker', material: 'Ripstop nylon shell',
+    emoji: '', name: 'Lightweight Windbreaker', material: 'Ripstop nylon shell',
     heatAbsorption: 'low', uvProtection: 'low', warmth: 'light', windproof: true, rainproof: false,
     scenarios: ['windy', 'cool'],
-    description: 'Blocks wind chill without adding heat. Packs flat into a pocket or bag.',
-    tip: 'Wind at 30 km/h makes 20°C feel like 14°C. A windbreaker restores perceived warmth.',
+    description: 'Cuts wind chill completely. Ultralight and easy to carry.',
+    tip: 'Wind chill makes 15°C feel like 8°C in 35 km/h winds — a windbreaker restores true temperature comfort.',
     priority: 11,
   },
   {
-    id: 'windproof_trousers',
-    emoji: '🩱', name: 'Windproof Softshell Trousers', material: 'Softshell fabric',
-    heatAbsorption: 'low', uvProtection: 'low', warmth: 'light', windproof: true,
-    scenarios: ['windy', 'cool'],
-    description: 'Stretch-woven to block wind while remaining breathable and comfortable for active use.',
-    tip: 'Great for cycling, running, or hiking in exposed windy conditions.',
-    priority: 8,
+    id: 'softshell',
+    emoji: '', name: 'Softshell Jacket', material: 'Woven polyester with fleece backing',
+    heatAbsorption: 'moderate', uvProtection: 'moderate', warmth: 'moderate', windproof: true,
+    scenarios: ['windy', 'cool', 'cold'],
+    description: 'Combines wind resistance, water repellency, and breathability in one layer.',
+    tip: 'Softshells are the ultimate all-rounder for dynamic outdoor activity in windy, variable weather.',
+    priority: 10,
   },
 
   // ── FOGGY ─────────────────────────────────────────────────────────────────
   {
     id: 'reflective_vest',
-    emoji: '🦺', name: 'Hi-Viz Reflective Vest', material: 'Polyester with reflective tape',
+    emoji: '', name: 'High-Visibility Reflective Vest / Strip', material: 'Fluorescent mesh with retro-reflective tape',
     heatAbsorption: 'low', uvProtection: 'none', warmth: 'none',
     scenarios: ['foggy'],
     description: 'Critical visibility aid in foggy conditions. Makes you visible to traffic from 200m+.',
@@ -325,7 +321,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
   {
     id: 'moisture_repellent',
-    emoji: '💨', name: 'Moisture-Repellent Outer Layer', material: 'DWR-coated softshell',
+    emoji: '', name: 'Moisture-Repellent Outer Layer', material: 'DWR-coated softshell',
     heatAbsorption: 'low', uvProtection: 'low', warmth: 'light', rainproof: true,
     scenarios: ['foggy', 'warm_cloudy'],
     description: 'Fog deposits fine water droplets on clothing. A repellent outer layer keeps you dry.',
@@ -336,7 +332,7 @@ const ALL_ITEMS: ClothingItem[] = [
   // ── SNOWY ─────────────────────────────────────────────────────────────────
   {
     id: 'snow_goggles',
-    emoji: '🥽', name: 'Snow Goggles / Polarised Glasses', material: 'Polycarbonate lens',
+    emoji: '', name: 'Snow Goggles / Polarised Glasses', material: 'Polycarbonate lens',
     heatAbsorption: 'very low', uvProtection: 'max', warmth: 'none',
     scenarios: ['snowy'],
     description: 'Snow reflects up to 80% of UV rays — UV exposure in snow can exceed equatorial sun.',
@@ -345,7 +341,7 @@ const ALL_ITEMS: ClothingItem[] = [
   },
 ];
 
-// ── Scoring function ──────────────────────────────────────────────────────────
+// ── Scoring function ────────────────────────────────────────────────────────
 function scoreItem(
   item: ClothingItem,
   scenario: WeatherScenario,
@@ -384,17 +380,17 @@ const UV_PROT_BADGE: Record<ClothingItem['uvProtection'], { color: string; label
   'max':      { color: '#FFFFFF', label: 'UPF 50+' },
 };
 
-const SCENARIO_META: Record<WeatherScenario, { label: string; emoji: string; desc: string; headerColor: string; headerBg: string }> = {
-  extreme_heat: { label: 'Extreme Heat', emoji: '🔥', desc: 'Temperature above 40°C — maximum protection mode.', headerColor: '#EF4444', headerBg: 'rgba(239,68,68,0.15)' },
-  hot_sunny:    { label: 'Hot & Sunny',  emoji: '☀️', desc: 'High UV and heat. Prioritise light, reflective fabrics.', headerColor: '#FBBF24', headerBg: 'rgba(251,191,36,0.15)' },
-  warm_humid:   { label: 'Warm & Humid', emoji: '💦', desc: 'High humidity amplifies heat stress. Prioritise moisture-wicking.', headerColor: '#38BDF8', headerBg: 'rgba(56,189,248,0.15)' },
-  warm_cloudy:  { label: 'Warm Cloudy',  emoji: '⛅', desc: 'Cloud cover reduces UV but warmth remains. Light layers work best.', headerColor: '#94A3B8', headerBg: 'rgba(148,163,184,0.15)' },
-  rainy:        { label: 'Rainy',        emoji: '🌧️', desc: 'Stay dry and warm. Waterproof outer layers are essential.', headerColor: '#60A5FA', headerBg: 'rgba(96,165,250,0.15)' },
-  cold:         { label: 'Cold',         emoji: '🥶', desc: 'Below 10°C. Layer up — base, mid, and shell.', headerColor: '#818CF8', headerBg: 'rgba(129,140,248,0.15)' },
-  cool:         { label: 'Cool',         emoji: '🌤️', desc: '15–22°C. Light layering with wind protection as needed.', headerColor: '#34D399', headerBg: 'rgba(52,211,153,0.15)' },
-  windy:        { label: 'Windy',        emoji: '💨', desc: 'High wind chill. Block the wind with a windbreaker or softshell.', headerColor: '#A78BFA', headerBg: 'rgba(167,139,250,0.15)' },
-  snowy:        { label: 'Snowy',        emoji: '❄️', desc: 'Full cold-weather kit required. UV from snow reflection is very high.', headerColor: '#BAE6FD', headerBg: 'rgba(186,230,253,0.15)' },
-  foggy:        { label: 'Foggy',        emoji: '🌫️', desc: 'Low visibility and damp air. Bright/reflective clothing + dry layers.', headerColor: '#CBD5E1', headerBg: 'rgba(203,213,225,0.15)' },
+const SCENARIO_META: Record<WeatherScenario, { label: string; desc: string; icon: typeof Sun }> = {
+  extreme_heat: { label: 'Extreme Heat', icon: Flame, desc: 'Temperature above 40°C — maximum protection mode.' },
+  hot_sunny:    { label: 'Hot & Sunny',  icon: Sun, desc: 'High UV and heat. Prioritise light, reflective fabrics.' },
+  warm_humid:   { label: 'Warm & Humid', icon: Droplets, desc: 'High humidity amplifies heat stress. Prioritise moisture-wicking.' },
+  warm_cloudy:  { label: 'Warm Cloudy',  icon: Cloud, desc: 'Cloud cover reduces UV but warmth remains. Light layers work best.' },
+  rainy:        { label: 'Rainy',        icon: CloudRain, desc: 'Stay dry and warm. Waterproof outer layers are essential.' },
+  cold:         { label: 'Cold',         icon: Snowflake, desc: 'Below 10°C. Layer up — base, mid, and shell.' },
+  cool:         { label: 'Cool',         icon: Thermometer, desc: '15–22°C. Light layering with wind protection as needed.' },
+  windy:        { label: 'Windy',        icon: Wind, desc: 'High wind chill. Block the wind with a windbreaker or softshell.' },
+  snowy:        { label: 'Snowy',        icon: Snowflake, desc: 'Full cold-weather kit required. UV from snow reflection is very high.' },
+  foggy:        { label: 'Foggy',        icon: Eye, desc: 'Low visibility and damp air. Bright/reflective clothing + dry layers.' },
 };
 
 function formatTemp(c: number, unit: 'C' | 'F') {
@@ -420,6 +416,7 @@ export function ClothingRecommendation({
   const scenario = classifyScenario(tempC, uvIndex, weatherCondition, windSpeedKmh, precipMm, humidityPct);
   const meta = SCENARIO_META[scenario];
   const condInfo = conditionLabel(weatherCondition);
+  const ScenarioIcon = meta.icon;
 
   const recommended = ALL_ITEMS
     .map((item) => ({ item, score: scoreItem(item, scenario, tempC, uvIndex, skinType) }))
@@ -438,39 +435,38 @@ export function ClothingRecommendation({
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <div style={{
           width: 36, height: 36, borderRadius: 10,
-          background: meta.headerBg, border: `1px solid ${meta.headerColor}44`,
+          background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18,
         }}>
-          {meta.emoji}
+          <ScenarioIcon size={18} color="#FFFFFF" />
         </div>
         <div style={{ flex: 1 }}>
           <h3 style={{ fontSize: 15, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
             Clothing Recommendations
           </h3>
-          <p style={{ fontSize: 11, color: '#64748B', margin: 0 }}>
-            {meta.label} conditions · {condInfo.emoji} {condInfo.label}
+          <p style={{ fontSize: 11, color: '#A1A1AA', margin: 0 }}>
+            {meta.label} conditions · {condInfo.label}
           </p>
         </div>
-        <Shirt size={18} color={meta.headerColor} />
+        <Shirt size={18} color="#FFFFFF" />
       </div>
 
       {/* Scenario banner */}
       <div style={{
         padding: '11px 14px', borderRadius: 13,
-        background: meta.headerBg,
-        border: `1px solid ${meta.headerColor}33`,
+        background: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.15)',
         marginBottom: 14, fontSize: 12, color: '#CBD5E1', lineHeight: 1.6,
       }}>
-        <strong style={{ color: meta.headerColor }}>{meta.emoji} {meta.label}:</strong> {meta.desc}
+        <strong style={{ color: '#FFFFFF' }}>{meta.label}:</strong> {meta.desc}
         {(scenario === 'hot_sunny' || scenario === 'extreme_heat') && uvIndex >= 3 && (
-          <span> Unprotected skin can burn in <strong style={{ color: '#FBBF24' }}>{burnTime}</strong>.</span>
+          <span> Unprotected skin can burn in <strong style={{ color: '#FFFFFF' }}>{burnTime}</strong>.</span>
         )}
         {scenario === 'rainy' && (
-          <span> Precipitation: <strong style={{ color: '#60A5FA' }}>{precipMm.toFixed(1)} mm</strong>.</span>
+          <span> Precipitation: <strong style={{ color: '#FFFFFF' }}>{precipMm.toFixed(1)} mm</strong>.</span>
         )}
         {scenario === 'windy' && (
-          <span> Wind chill: <strong style={{ color: '#A78BFA' }}>{windSpeedKmh} km/h</strong> winds.</span>
+          <span> Wind chill: <strong style={{ color: '#FFFFFF' }}>{windSpeedKmh} km/h</strong> winds.</span>
         )}
       </div>
 
@@ -481,7 +477,7 @@ export function ClothingRecommendation({
           background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
         }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: '#FFF', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-            🎨 <span>Shirt Color Heat Reflection Guide</span>
+            <Palette size={14} color="#FFFFFF" /> <span>Shirt Color Heat Reflection Guide</span>
           </div>
           <p style={{ fontSize: 11, color: '#94A3B8', marginBottom: 12, lineHeight: 1.5 }}>
             Fabric color dramatically changes how much solar heat your body absorbs in direct sun:
@@ -579,7 +575,13 @@ export function ClothingRecommendation({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 24 }}>{item.emoji}</span>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 12,
+                    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <ItemIcon id={item.id} />
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: '#E2E8F0' }}>{item.name}</div>
                     <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>{item.material}</div>
@@ -603,10 +605,14 @@ export function ClothingRecommendation({
                     )}
                     {/* Special badges */}
                     {item.rainproof && (
-                      <span style={{ fontSize: 9, color: '#60A5FA', fontWeight: 700 }}>💧 Waterproof</span>
+                      <span style={{ fontSize: 9, color: '#E4E4E7', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Droplets size={9} color="#FFFFFF" /> Waterproof
+                      </span>
                     )}
                     {item.windproof && (
-                      <span style={{ fontSize: 9, color: '#A78BFA', fontWeight: 700 }}>💨 Windproof</span>
+                      <span style={{ fontSize: 9, color: '#A1A1AA', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Wind size={9} color="#A1A1AA" /> Windproof
+                      </span>
                     )}
                   </div>
                 </div>
@@ -627,10 +633,10 @@ export function ClothingRecommendation({
                         </p>
                         <div style={{
                           display: 'flex', alignItems: 'flex-start', gap: 6,
-                          background: `${meta.headerColor}11`, borderRadius: 10, padding: '8px 12px',
+                          background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '8px 12px',
                         }}>
-                          <span style={{ fontSize: 14 }}>💡</span>
-                          <p style={{ fontSize: 11, color: meta.headerColor, fontStyle: 'italic', lineHeight: 1.5, margin: 0 }}>
+                          <Sun size={13} color="#FFFFFF" style={{ flexShrink: 0, marginTop: 2 }} />
+                          <p style={{ fontSize: 11, color: '#FFFFFF', fontStyle: 'italic', lineHeight: 1.5, margin: 0 }}>
                             {item.tip}
                           </p>
                         </div>
