@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Thermometer, Eye, Droplets, Sun, MapPin, Plus, X, RotateCw, Radio,
-  Search, Wind, CloudRain, Navigation,
+  Search, Wind, CloudRain, Navigation, Globe, ExternalLink,
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -27,6 +27,7 @@ interface DashboardProps {
   loadingWeather?: boolean;
   onRefreshWeather?: () => void;
   onSelectLocation?: (result: GeoSearchResult) => void;
+  onOpenWebPromo?: () => void;
 }
 
 // Default clean user profile fallback
@@ -48,6 +49,7 @@ export function Dashboard({
   loadingWeather = false,
   onRefreshWeather,
   onSelectLocation,
+  onOpenWebPromo,
 }: DashboardProps) {
   const [selectedFactor, setSelectedFactor] = useState<ScoringResult['factors'][0] | null>(null);
   const [hydrationMl, setHydrationMl] = useState(1750);
@@ -179,6 +181,27 @@ export function Dashboard({
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
+            {/* Web Promo Modal Trigger Button */}
+            {onOpenWebPromo && (
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={onOpenWebPromo}
+                title="Web Application Info"
+                style={{
+                  width: 38, height: 38, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.2)',
+                  backdropFilter: 'blur(12px)', border: '1px solid rgba(245, 158, 11, 0.4)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  color: '#F59E0B', position: 'relative'
+                }}
+              >
+                <Globe size={16} />
+                <span style={{
+                  position: 'absolute', top: -1, right: -1, width: 8, height: 8, borderRadius: '50%',
+                  background: '#EF4444', boxShadow: '0 0 6px #EF4444'
+                }} />
+              </motion.button>
+            )}
+
             {/* Location search toggle */}
             <motion.button
               whileTap={{ scale: 0.88 }}
@@ -194,6 +217,7 @@ export function Dashboard({
             >
               <Search size={16} />
             </motion.button>
+
             {/* Refresh / back to GPS */}
             <motion.button
               whileTap={{ scale: 0.88 }}
@@ -218,6 +242,50 @@ export function Dashboard({
           heatScore={result.totalScore}
           fullWidth
         />
+
+        {/* ── Web Application Promo Banner Card ── */}
+        <GlassCard
+          onClick={onOpenWebPromo}
+          style={{
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            padding: '12px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(245, 158, 11, 0.1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: '50%',
+              background: 'rgba(245, 158, 11, 0.25)',
+              border: '1px solid rgba(245, 158, 11, 0.5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <Globe size={18} color="#F59E0B" />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>Heat Prediction Web App</span>
+                <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, background: '#F59E0B', color: '#000', fontWeight: 900 }}>
+                  WEB
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: '#D4D4D8', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Check out our web app at heat-watch-beta.vercel.app
+              </div>
+            </div>
+          </div>
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}>
+            <ExternalLink size={14} color="#FFF" />
+          </div>
+        </GlassCard>
 
         {/* ── Location Search Panel ── */}
         <AnimatePresence>

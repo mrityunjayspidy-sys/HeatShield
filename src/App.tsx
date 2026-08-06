@@ -18,6 +18,7 @@ import { supabase, getCachedProfile, cacheProfile, signOut, fetchProfile, type U
 import { fetchLiveWeather, getCachedWeather, cacheWeather, type LiveWeatherData } from './lib/weather';
 import { getCurrentCoordinates } from './lib/location';
 import { requestNotificationPermission } from './lib/notifications';
+import { WebPromoModal } from './components/ui/WebPromoModal';
 
 type Tab = 'home' | 'alerts' | 'hydration' | 'profile' | 'settings' | 'work';
 
@@ -50,6 +51,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [showExitModal, setShowExitModal] = useState<boolean>(false);
   const [showLocationModal, setShowLocationModal] = useState<boolean>(false);
+  const [showWebPromoModal, setShowWebPromoModal] = useState<boolean>(false);
 
   // Single global weather state initialized with instant local cache
   const [weather, setWeather] = useState<LiveWeatherData | null>(() => getCachedWeather());
@@ -161,6 +163,23 @@ export default function App() {
       setShowDailyCheckIn(true);
     }
   }, [onboarded]);
+
+  // Auto show web application promo popup once on initial load/onboarding
+  useEffect(() => {
+    if (!onboarded) return;
+    const promoSeen = localStorage.getItem('heatwatch_web_promo_seen_v1');
+    if (!promoSeen) {
+      const timer = setTimeout(() => {
+        setShowWebPromoModal(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [onboarded]);
+
+  const handleCloseWebPromo = () => {
+    localStorage.setItem('heatwatch_web_promo_seen_v1', 'true');
+    setShowWebPromoModal(false);
+  };
 
   // Load weather once on app startup + check location + request notification permission
   useEffect(() => {
@@ -297,6 +316,7 @@ export default function App() {
               loadingWeather={loadingWeather}
               onRefreshWeather={() => loadWeather()}
               onSelectLocation={(r) => loadWeather({ latitude: r.latitude, longitude: r.longitude, cityName: r.displayName })}
+              onOpenWebPromo={() => setShowWebPromoModal(true)}
             />
           )}
           {tab === 'alerts' && <AlertsHistory userSession={activeSession} weather={weather} />}
@@ -322,7 +342,11 @@ export default function App() {
             />
           )}
           {tab === 'settings' && (
-            <SettingsPage tempUnit={tempUnit} onTempUnitChange={handleTempUnitChange} />
+            <SettingsPage
+              tempUnit={tempUnit}
+              onTempUnitChange={handleTempUnitChange}
+              onOpenWebPromo={() => setShowWebPromoModal(true)}
+            />
           )}
         </motion.div>
       </AnimatePresence>
@@ -485,6 +509,9 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Web Application Promo Modal ── */}
+      <WebPromoModal isOpen={showWebPromoModal} onClose={handleCloseWebPromo} />
     </>
   );
 }

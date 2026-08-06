@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Settings as SettingsIcon, Moon, Bell, MapPin, Thermometer, Clock,
-  Star, Send, CheckCircle2, MessageSquarePlus,
+  Star, Send, CheckCircle2, MessageSquarePlus, Globe, ExternalLink,
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
@@ -49,9 +49,10 @@ const FEATURE_OPTIONS = [
 interface SettingsPageProps {
   tempUnit: 'C' | 'F';
   onTempUnitChange: (unit: 'C' | 'F') => void;
+  onOpenWebPromo?: () => void;
 }
 
-export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) {
+export function SettingsPage({ tempUnit, onTempUnitChange, onOpenWebPromo }: SettingsPageProps) {
   // ── Existing settings ──────────────────────────────────────────────────────
   const [notifications, setNotifications] = useState(true);
   const [location, setLocation]         = useState(true);
@@ -227,6 +228,69 @@ export function SettingsPage({ tempUnit, onTempUnitChange }: SettingsPageProps) 
               </div>
             }
           />
+        </GlassCard>
+
+        {/* ── Web Application Section ── */}
+        <GlassCard style={{ border: '1px solid rgba(245,158,11,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(239,68,68,0.25))',
+              border: '1px solid rgba(245,158,11,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Globe size={18} color="#F59E0B" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
+                Heat Prediction Web App
+              </h3>
+              <p style={{ fontSize: 11, color: '#A1A1AA', margin: 0 }}>
+                Check out our web application online
+              </p>
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(0,0,0,0.35)', padding: '10px 14px', borderRadius: 12,
+            border: '1px solid rgba(255,255,255,0.12)', marginBottom: 14,
+            fontSize: 12, color: '#F59E0B', fontWeight: 700, wordBreak: 'break-all'
+          }}>
+            https://heat-watch-beta.vercel.app/
+          </div>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            {onOpenWebPromo && (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={onOpenWebPromo}
+                style={{
+                  flex: 1, padding: '10px 12px', borderRadius: 12,
+                  background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)',
+                  color: '#F59E0B', fontWeight: 800, fontSize: 12, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                <Globe size={14} />
+                <span>Show Popup</span>
+              </motion.button>
+            )}
+
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => window.open('https://heat-watch-beta.vercel.app/', '_blank', 'noopener,noreferrer')}
+              style={{
+                flex: 1, padding: '10px 12px', borderRadius: 12,
+                background: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)', border: 'none',
+                color: '#FFFFFF', fontWeight: 900, fontSize: 12, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                boxShadow: '0 4px 12px rgba(245,158,11,0.3)'
+              }}
+            >
+              <span>Visit Website</span>
+              <ExternalLink size={14} />
+            </motion.button>
+          </div>
         </GlassCard>
 
         {/* ── Feedback & Feature Survey ── */}
