@@ -19,6 +19,7 @@ import { OutdoorTimeSuggestion } from '../components/OutdoorTimeSuggestion';
 import { ClothingRecommendation } from '../components/ClothingRecommendation';
 import { SosButton } from '../components/SosButton';
 import { HydrationReminder } from '../components/HydrationReminder';
+import { HWLogo } from '../components/ui/HWLogo';
 
 interface DashboardProps {
   userSession?: UserSession;
@@ -161,7 +162,8 @@ export function Dashboard({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginBottom: 20, position: 'relative', minHeight: 56 }}>
           
           {/* Centered Brand Title & Live API badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <HWLogo size={34} />
             <h1 style={{
               fontSize: 32, fontWeight: 900, color: '#FFFFFF',
               letterSpacing: '-0.03em', margin: 0,

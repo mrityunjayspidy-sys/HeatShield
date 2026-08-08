@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Shield, ArrowRight, Sun, Activity, Droplets } from 'lucide-react';
+import { ArrowRight, Sun, Activity, Droplets } from 'lucide-react';
 import SideRays from '../components/ui/SideRays';
 import BlurText from '../components/ui/BlurText';
 import { GlassCard } from '../components/ui/GlassCard';
+import { HWLogo } from '../components/ui/HWLogo';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -51,24 +52,12 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
           margin: 'auto 0',
         }}
       >
-        {/* Animated App Icon */}
+        {/* Animated HW App Icon */}
         <motion.div
-          animate={{ scale: [1, 1.06, 1], rotate: [0, 2, -2, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            width: 76,
-            height: 76,
-            borderRadius: 24,
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px)',
-            border: '1.5px solid rgba(255, 255, 255, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 12px 32px rgba(255, 255, 255, 0.15)',
-          }}
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <Shield size={40} color="#FFFFFF" />
+          <HWLogo size={76} />
         </motion.div>
 
         {/* BlurText Title & Subtitle */}

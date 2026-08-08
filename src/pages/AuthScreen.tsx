@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Shield, Eye, EyeOff, Lock, Mail, User as UserIcon,
+  Eye, EyeOff, Lock, Mail, User as UserIcon,
   CheckCircle2, AlertCircle, ArrowRight, Sun, Droplets,
   ChevronLeft, ChevronRight, Loader2, KeyRound,
   Activity, Scale, Pill,
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
+import { HWLogo } from '../components/ui/HWLogo';
 import {
   supabase, signUpWithEmail, signInWithEmail, sendPasswordReset,
   upsertProfile, fetchProfile, saveUserSession,
@@ -474,12 +475,8 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       <>
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <div style={{
-          width: 60, height: 60, borderRadius: 20, background: 'rgba(255,255,255,0.1)',
-          backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.25)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-        }}>
-          <Shield size={32} color="#FFFFFF" />
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+          <HWLogo size={52} />
         </div>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: '#FFF' }}>HeatWatch Security</h1>
         <p style={{ fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>

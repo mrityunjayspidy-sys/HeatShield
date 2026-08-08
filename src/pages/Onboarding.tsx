@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
+import { HWLogo } from '../components/ui/HWLogo';
 import { type UserSession, saveUserSession } from '../lib/supabase';
 
 interface OnboardingProps {
@@ -133,9 +134,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     <AnimatedGradientBackground tier="safe">
       <div style={{ maxWidth: 540, margin: '0 auto', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Shield size={40} color="#FFFFFF" />
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FFF', marginTop: 8 }}>HeatWatch</h1>
+        <div style={{ textAlign: 'center', marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <HWLogo size={48} />
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FFF', marginTop: 10 }}>HeatWatch</h1>
           <p style={{ fontSize: 13, color: '#A1A1AA' }}>Personal heat & hydration safety</p>
         </div>
 
