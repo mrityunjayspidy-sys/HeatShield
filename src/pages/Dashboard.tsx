@@ -157,30 +157,31 @@ export function Dashboard({
     <AnimatedGradientBackground tier={tier}>
       <div className="hw-container">
 
-        {/* ── Top Header Controls & Location Bar ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>HeatWatch</h1>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 12,
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                fontSize: 10, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 0.5,
-              }}>
-                <Radio size={10} color="#FFFFFF" />
-                Live API
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#A1A1AA', marginTop: 2 }}>
-              <MapPin size={12} color="#FFFFFF" />
-              <span>{weather ? weather.cityName : 'Detecting location...'}</span>
-              {weather && <span style={{ color: '#52525B', fontSize: 11 }}>• {weather.updatedAt}</span>}
+        {/* ── Top Header Controls & Centered Brand Title ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginBottom: 16, position: 'relative', minHeight: 48 }}>
+          
+          {/* Centered Brand Title & Live API badge */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 900, color: '#FFF', letterSpacing: '-0.02em', margin: 0 }}>HeatWatch</h1>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 12,
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              fontSize: 10, fontWeight: 800, color: '#FFF', textTransform: 'uppercase', letterSpacing: 0.5,
+            }}>
+              <Radio size={10} color="#FFFFFF" />
+              Live API
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
+            <MapPin size={13} color="#FFFFFF" />
+            <span>{weather ? weather.cityName : 'Detecting location...'}</span>
+            {weather && <span style={{ color: '#52525B', fontSize: 12 }}>• {weather.updatedAt}</span>}
+          </div>
+
+          {/* Action buttons positioned top right */}
+          <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: 8 }}>
             {/* Web Promo Modal Trigger Button */}
             {onOpenWebPromo && (
               <motion.button
@@ -188,7 +189,7 @@ export function Dashboard({
                 onClick={onOpenWebPromo}
                 title="Web Application Info"
                 style={{
-                  width: 38, height: 38, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.2)',
+                  width: 36, height: 36, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.2)',
                   backdropFilter: 'blur(12px)', border: '1px solid rgba(245, 158, 11, 0.4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                   color: '#F59E0B', position: 'relative'
@@ -207,7 +208,7 @@ export function Dashboard({
               whileTap={{ scale: 0.88 }}
               onClick={() => setShowLocationSearch((p) => !p)}
               style={{
-                width: 38, height: 38, borderRadius: '50%',
+                width: 36, height: 36, borderRadius: '50%',
                 background: showLocationSearch ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)',
                 border: `1px solid ${showLocationSearch ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)'}`,
@@ -224,7 +225,7 @@ export function Dashboard({
               onClick={onRefreshWeather}
               title="Refresh weather"
               style={{
-                width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.1)',
+                width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.1)',
                 backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                 color: '#FFF',
