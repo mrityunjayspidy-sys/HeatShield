@@ -158,39 +158,46 @@ export function Dashboard({
     <AnimatedGradientBackground tier={tier}>
       <div className="hw-container">
 
-        {/* ── Top Header Controls & Centered Brand Title ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginBottom: 20, position: 'relative', minHeight: 56 }}>
+        {/* ── Top Header Controls & Mobile/Desktop Responsive Bar ── */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          marginBottom: 20,
+          gap: 12,
+        }}>
           
-          {/* Centered Brand Title & Live API badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-            <HWLogo size={34} />
-            <h1 style={{
-              fontSize: 32, fontWeight: 900, color: '#FFFFFF',
-              letterSpacing: '-0.03em', margin: 0,
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #E4E4E7 100%)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-            }}>
-              HeatWatch
-            </h1>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 9999,
-              background: 'rgba(16, 185, 129, 0.15)',
-              border: '1px solid rgba(16, 185, 129, 0.35)',
-              fontSize: 10, fontWeight: 800, color: '#34D399', textTransform: 'uppercase', letterSpacing: 0.6,
-            }}>
-              <Radio size={10} color="#34D399" />
-              Live API
+          {/* Left Corner: Brand Logo, Title & Subtitle */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <HWLogo size={32} />
+              <h1 style={{
+                fontSize: 24, fontWeight: 900, color: '#FFFFFF',
+                letterSpacing: '-0.02em', margin: 0, whiteSpace: 'nowrap',
+              }}>
+                HeatWatch
+              </h1>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 9999,
+                background: 'rgba(16, 185, 129, 0.15)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                fontSize: 10, fontWeight: 800, color: '#34D399', textTransform: 'uppercase', letterSpacing: 0.5,
+              }}>
+                <Radio size={10} color="#34D399" />
+                <span>Live API</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#A1A1AA', marginTop: 3 }}>
+              <MapPin size={12} color="#A1A1AA" />
+              <span style={{ fontWeight: 600, color: '#E4E4E7' }}>{weather ? weather.cityName : 'Detecting location...'}</span>
+              {weather && <span style={{ color: '#71717A', fontSize: 11 }}>• {weather.updatedAt}</span>}
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, color: '#A1A1AA', marginTop: 4 }}>
-            <MapPin size={13} color="#A1A1AA" />
-            <span style={{ fontWeight: 600, color: '#E4E4E7' }}>{weather ? weather.cityName : 'Detecting location...'}</span>
-            {weather && <span style={{ color: '#71717A', fontSize: 12 }}>• {weather.updatedAt}</span>}
-          </div>
-
-          {/* Action buttons positioned top right */}
-          <div style={{ position: 'absolute', right: 0, top: 2, display: 'flex', gap: 8 }}>
+          {/* Right Corner: Clear Action Buttons (Web Promo, Search, Refresh) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {/* Web Promo Modal Trigger Button */}
             {onOpenWebPromo && (
               <motion.button
@@ -198,10 +205,10 @@ export function Dashboard({
                 onClick={onOpenWebPromo}
                 title="Web Application Info"
                 style={{
-                  width: 38, height: 38, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.18)',
+                  width: 36, height: 36, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.18)',
                   backdropFilter: 'blur(12px)', border: '1px solid rgba(245, 158, 11, 0.4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                  color: '#F59E0B', position: 'relative'
+                  color: '#F59E0B', position: 'relative', flexShrink: 0,
                 }}
               >
                 <Globe size={16} />
@@ -216,13 +223,14 @@ export function Dashboard({
             <motion.button
               whileTap={{ scale: 0.88 }}
               onClick={() => setShowLocationSearch((p) => !p)}
+              title="Search City"
               style={{
-                width: 38, height: 38, borderRadius: '50%',
+                width: 36, height: 36, borderRadius: '50%',
                 background: showLocationSearch ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(12px)',
                 border: `1px solid ${showLocationSearch ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.18)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                color: '#FFF',
+                color: '#FFF', flexShrink: 0,
               }}
             >
               <Search size={16} />
@@ -234,10 +242,10 @@ export function Dashboard({
               onClick={onRefreshWeather}
               title="Refresh weather"
               style={{
-                width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.08)',
+                width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.08)',
                 backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.18)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                color: '#FFF',
+                color: '#FFF', flexShrink: 0,
               }}
             >
               <RotateCw size={16} className={loadingWeather ? 'animate-spin' : ''} />
