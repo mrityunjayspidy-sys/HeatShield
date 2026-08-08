@@ -131,7 +131,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   return (
     <AnimatedGradientBackground tier="safe">
-      <div style={{ maxWidth: 440, margin: '0 auto', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ maxWidth: 540, margin: '0 auto', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <Shield size={40} color="#FFFFFF" />

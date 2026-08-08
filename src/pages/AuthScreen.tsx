@@ -1087,7 +1087,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
   return (
     <AnimatedGradientBackground tier="safe">
-      <div style={{ maxWidth: 440, margin: '0 auto', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div style={{ maxWidth: 540, margin: '0 auto', padding: '40px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <AnimatePresence mode="wait">
           {wizardStep === null && renderAuthForm()}
           {wizardStep === 'body' && renderBodyStep()}

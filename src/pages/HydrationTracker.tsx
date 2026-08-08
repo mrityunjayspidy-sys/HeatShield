@@ -176,7 +176,7 @@ export function HydrationTracker({ userSession, weather }: HydrationTrackerProps
 
   return (
     <AnimatedGradientBackground tier={scoreResult.tier}>
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px calc(60px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="hw-container">
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -193,61 +193,66 @@ export function HydrationTracker({ userSession, weather }: HydrationTrackerProps
           </div>
         </div>
 
-        {/* ── Weather & Hydration Target Overview Card ── */}
-        <GlassCard>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <CloudSun size={18} color="#FFFFFF" />
-              <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>
-                Weather Condition Impact ({currentTemp.toFixed(1)}°C)
-              </span>
-            </div>
-            <span style={{
-              fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#FFFFFF',
-            }}>
-              {scoreResult.tier.toUpperCase()} RISK
-            </span>
-          </div>
+        {/* ── Desktop Two Column Grid ── */}
+        <div className="hw-two-col-grid">
 
-          <div style={{
-            padding: '12px 14px', borderRadius: 14,
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)',
-            display: 'flex', flexDirection: 'column', gap: 8,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', textTransform: 'uppercase' }}>
-                  Weather-Recommended Target
+          {/* Left Column (Target & Progress Gauge) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Weather & Hydration Target Overview Card */}
+            <GlassCard>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CloudSun size={18} color="#FFFFFF" />
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>
+                    Weather Condition Impact ({currentTemp.toFixed(1)}°C)
+                  </span>
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>
-                  {weatherRecommendedGoal.toLocaleString()} ml <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 600 }}>(+{tempAdjustmentMl}ml for heat)</span>
-                </div>
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
+                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#FFFFFF',
+                }}>
+                  {scoreResult.tier.toUpperCase()} RISK
+                </span>
               </div>
 
-              {userGoal !== weatherRecommendedGoal && (
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleSetUserGoal(weatherRecommendedGoal)}
-                  style={{
-                    padding: '6px 12px', borderRadius: 10, fontSize: 11, fontWeight: 800,
-                    background: '#FFFFFF', color: '#000000', border: 'none', cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Apply Weather Target
-                </motion.button>
-              )}
-            </div>
+              <div style={{
+                padding: '12px 14px', borderRadius: 14,
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', flexDirection: 'column', gap: 8,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#A1A1AA', textTransform: 'uppercase' }}>
+                      Weather-Recommended Target
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>
+                      {weatherRecommendedGoal.toLocaleString()} ml <span style={{ fontSize: 11, color: '#A1A1AA', fontWeight: 600 }}>(+{tempAdjustmentMl}ml for heat)</span>
+                    </div>
+                  </div>
 
-            <div style={{ fontSize: 11, color: '#A1A1AA', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 8 }}>
-              PROMPT: Hydration content is dynamically calculated based on temperature ({currentTemp.toFixed(1)}°C) and user weight ({weightKg}kg).
-            </div>
-          </div>
-        </GlassCard>
+                  {userGoal !== weatherRecommendedGoal && (
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleSetUserGoal(weatherRecommendedGoal)}
+                      style={{
+                        padding: '6px 12px', borderRadius: 10, fontSize: 11, fontWeight: 800,
+                        background: '#FFFFFF', color: '#000000', border: 'none', cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Apply Weather Target
+                    </motion.button>
+                  )}
+                </div>
 
-        {/* ── Water Ring Progress Card ── */}
-        <GlassCard elevation="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
+                <div style={{ fontSize: 11, color: '#A1A1AA', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 8 }}>
+                  Hydration requirement calculated dynamically from temperature ({currentTemp.toFixed(1)}°C) & body weight ({weightKg}kg).
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Water Ring Progress Card */}
+            <GlassCard elevation="hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24 }}>
           <div style={{ position: 'relative', width: 210, height: 210 }}>
             <svg width="210" height="210" viewBox="0 0 240 240" style={{ transform: 'rotate(-90deg)' }}>
               <circle cx="120" cy="120" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="16" />
@@ -349,177 +354,185 @@ export function HydrationTracker({ userSession, weather }: HydrationTrackerProps
           </div>
         </GlassCard>
 
-        {/* ── Set Daily Water Limit & Reminder Settings ── */}
-        <GlassCard>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Set Daily Water Limit */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Target size={16} color="#FFFFFF" />
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Set Daily Water Limit</span>
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowGoalPicker((p) => !p)}
-                style={{
-                  padding: '6px 14px', borderRadius: 10, fontSize: 13, fontWeight: 800,
-                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
-                  color: '#FFFFFF', cursor: 'pointer',
-                }}
-              >
-                {userGoal.toLocaleString()} ml
-              </motion.button>
-            </div>
+          </div> {/* End Left Column */}
 
-            <AnimatePresence>
-              {showGoalPicker && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                  style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
-                >
-                  {GOAL_OPTIONS.map((g) => (
-                    <motion.button
-                      key={g} whileTap={{ scale: 0.95 }}
-                      onClick={() => handleSetUserGoal(g)}
-                      style={{
-                        padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                        background: userGoal === g ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
-                        border: `1px solid ${userGoal === g ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
-                        color: userGoal === g ? '#000000' : '#A1A1AA', cursor: 'pointer',
-                      }}
-                    >
-                      {g.toLocaleString()} ml
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Reminder Toggle */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {remindersOn ? <Bell size={16} color="#FFFFFF" /> : <BellOff size={16} color="#52525B" />}
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Mobile Notifications</span>
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={handleToggleReminders}
-                style={{
-                  padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                  background: remindersOn ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${remindersOn ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
-                  color: remindersOn ? '#FFFFFF' : '#71717A', cursor: 'pointer',
-                }}
-              >
-                {remindersOn ? 'ACTIVE' : 'OFF'}
-              </motion.button>
-            </div>
-
-            {/* Reminder Interval */}
-            {remindersOn && (
-              <>
+          {/* Right Column (Settings, Notifications & Fluid Log) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Set Daily Water Limit & Reminder Settings */}
+            <GlassCard>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Set Daily Water Limit */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Clock size={16} color="#FFFFFF" />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Weather Reminder Interval</span>
+                    <Target size={16} color="#FFFFFF" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Set Daily Water Limit</span>
                   </div>
                   <motion.button
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowIntervalPicker((p) => !p)}
+                    onClick={() => setShowGoalPicker((p) => !p)}
                     style={{
                       padding: '6px 14px', borderRadius: 10, fontSize: 13, fontWeight: 800,
-                      background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+                      background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
                       color: '#FFFFFF', cursor: 'pointer',
                     }}
                   >
-                    Every {intervalMin} min
+                    {userGoal.toLocaleString()} ml
                   </motion.button>
                 </div>
 
                 <AnimatePresence>
-                  {showIntervalPicker && (
+                  {showGoalPicker && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                       style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
                     >
-                      {INTERVAL_OPTIONS.map((m) => (
+                      {GOAL_OPTIONS.map((g) => (
                         <motion.button
-                          key={m} whileTap={{ scale: 0.95 }}
-                          onClick={() => handleSetInterval(m)}
+                          key={g} whileTap={{ scale: 0.95 }}
+                          onClick={() => handleSetUserGoal(g)}
                           style={{
                             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
-                            background: intervalMin === m ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
-                            border: `1px solid ${intervalMin === m ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
-                            color: intervalMin === m ? '#000000' : '#A1A1AA', cursor: 'pointer',
+                            background: userGoal === g ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
+                            border: `1px solid ${userGoal === g ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                            color: userGoal === g ? '#000000' : '#A1A1AA', cursor: 'pointer',
                           }}
                         >
-                          {m} min
+                          {g.toLocaleString()} ml
                         </motion.button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* ── Test Mobile Push Notification Button ── */}
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  onClick={handleSendTestNotification}
-                  type="button"
-                  style={{
-                    padding: '12px', borderRadius: 14, cursor: 'pointer',
-                    background: testSent ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    color: '#FFFFFF', fontWeight: 800, fontSize: 13,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    marginTop: 4,
-                  }}
-                >
-                  {testSent ? <Check size={16} color="#FFFFFF" /> : <Send size={16} color="#FFFFFF" />}
-                  {testSent ? 'Mobile Weather Notification Sent!' : 'Send Test Mobile Weather Notification'}
-                </motion.button>
-
-                <p style={{ fontSize: 11, color: '#A1A1AA', lineHeight: 1.4, margin: 0 }}>
-                  PROMPT: Mobile push notifications automatically send weather alerts based on live temperature ({currentTemp.toFixed(1)}°C) every {intervalMin} minutes.
-                </p>
-              </>
-            )}
-          </div>
-        </GlassCard>
-
-        {/* ── Today's Log History ── */}
-        <GlassCard>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ fontWeight: 700, color: '#A1A1AA', fontSize: 14, margin: 0 }}>Today's Fluid Log</h3>
-            <motion.button whileTap={{ scale: 0.9 }} onClick={resetToday}
-              style={{ background: 'none', border: 'none', color: '#71717A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
-              <RotateCcw size={12} /> Reset
-            </motion.button>
-          </div>
-          {logs.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#52525B', textAlign: 'center', padding: '16px 0', margin: 0 }}>
-              No water logged today. Tap a quick-log button above to record intake.
-            </p>
-          ) : (
-            logs.map((log, i) => (
-              <div key={log.timestamp} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0',
-                borderBottom: i < logs.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-              }}>
-                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>+{log.ml} ml</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ color: '#71717A', fontSize: 12 }}>{log.time}</span>
+                {/* Reminder Toggle */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {remindersOn ? <Bell size={16} color="#FFFFFF" /> : <BellOff size={16} color="#52525B" />}
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Mobile Notifications</span>
+                  </div>
                   <motion.button
-                    whileTap={{ scale: 0.8 }}
-                    onClick={() => removeLog(i)}
-                    style={{ background: 'none', border: 'none', color: '#52525B', cursor: 'pointer', padding: 4 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleToggleReminders}
+                    style={{
+                      padding: '6px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
+                      background: remindersOn ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.06)',
+                      border: `1px solid ${remindersOn ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                      color: remindersOn ? '#FFFFFF' : '#71717A', cursor: 'pointer',
+                    }}
                   >
-                    <Trash2 size={13} />
+                    {remindersOn ? 'ACTIVE' : 'OFF'}
                   </motion.button>
                 </div>
+
+                {/* Reminder Interval */}
+                {remindersOn && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Clock size={16} color="#FFFFFF" />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#A1A1AA' }}>Weather Reminder Interval</span>
+                      </div>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowIntervalPicker((p) => !p)}
+                        style={{
+                          padding: '6px 14px', borderRadius: 10, fontSize: 13, fontWeight: 800,
+                          background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
+                          color: '#FFFFFF', cursor: 'pointer',
+                        }}
+                      >
+                        Every {intervalMin} min
+                      </motion.button>
+                    </div>
+
+                    <AnimatePresence>
+                      {showIntervalPicker && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                          style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
+                        >
+                          {INTERVAL_OPTIONS.map((m) => (
+                            <motion.button
+                              key={m} whileTap={{ scale: 0.95 }}
+                              onClick={() => handleSetInterval(m)}
+                              style={{
+                                padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 800,
+                                background: intervalMin === m ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
+                                border: `1px solid ${intervalMin === m ? '#FFFFFF' : 'rgba(255,255,255,0.12)'}`,
+                                color: intervalMin === m ? '#000000' : '#A1A1AA', cursor: 'pointer',
+                              }}
+                            >
+                              {m} min
+                            </motion.button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Test Mobile Push Notification Button */}
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      onClick={handleSendTestNotification}
+                      type="button"
+                      style={{
+                        padding: '12px', borderRadius: 14, cursor: 'pointer',
+                        background: testSent ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        color: '#FFFFFF', fontWeight: 800, fontSize: 13,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        marginTop: 4,
+                      }}
+                    >
+                      {testSent ? <Check size={16} color="#FFFFFF" /> : <Send size={16} color="#FFFFFF" />}
+                      {testSent ? 'Mobile Weather Notification Sent!' : 'Send Test Mobile Weather Notification'}
+                    </motion.button>
+
+                    <p style={{ fontSize: 11, color: '#A1A1AA', lineHeight: 1.4, margin: 0 }}>
+                      PROMPT: Mobile push notifications automatically send weather alerts based on live temperature ({currentTemp.toFixed(1)}°C) every {intervalMin} minutes.
+                    </p>
+                  </>
+                )}
               </div>
-            ))
-          )}
-        </GlassCard>
+            </GlassCard>
+
+            {/* Today's Log History */}
+            <GlassCard>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <h3 style={{ fontWeight: 700, color: '#A1A1AA', fontSize: 14, margin: 0 }}>Today's Fluid Log</h3>
+                <motion.button whileTap={{ scale: 0.9 }} onClick={resetToday}
+                  style={{ background: 'none', border: 'none', color: '#71717A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+                  <RotateCcw size={12} /> Reset
+                </motion.button>
+              </div>
+              {logs.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#52525B', textAlign: 'center', padding: '16px 0', margin: 0 }}>
+                  No water logged today. Tap a quick-log button above to record intake.
+                </p>
+              ) : (
+                logs.map((log, i) => (
+                  <div key={log.timestamp} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0',
+                    borderBottom: i < logs.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                  }}>
+                    <span style={{ color: '#FFFFFF', fontWeight: 700 }}>+{log.ml} ml</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ color: '#71717A', fontSize: 12 }}>{log.time}</span>
+                      <motion.button
+                        whileTap={{ scale: 0.8 }}
+                        onClick={() => removeLog(i)}
+                        style={{ background: 'none', border: 'none', color: '#52525B', cursor: 'pointer', padding: 4 }}
+                      >
+                        <Trash2 size={13} />
+                      </motion.button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </GlassCard>
+          </div> {/* End Right Column */}
+
+        </div> {/* End hw-two-col-grid */}
+
       </div>
     </AnimatedGradientBackground>
   );

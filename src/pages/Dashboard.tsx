@@ -11,7 +11,7 @@ import { ScoreGauge } from '../components/ScoreGauge';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import type { ScoringResult, ScoringInput } from '../lib/scoring';
 import { computeHeatScore, TIER_COLORS } from '../lib/scoring';
-import { type LiveWeatherData, searchCity, type GeoSearchResult, conditionLabel } from '../lib/weather';
+import { type LiveWeatherData, searchCity, type GeoSearchResult } from '../lib/weather';
 import type { UserSession } from '../lib/supabase';
 import { predictMedicalConditions } from '../lib/medicalPrediction';
 import { MedicalPredictionCard } from '../components/MedicalPredictionCard';
@@ -155,9 +155,9 @@ export function Dashboard({
 
   return (
     <AnimatedGradientBackground tier={tier}>
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px 100px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="hw-container">
 
-        {/* Header */}
+        {/* ── Top Header Controls & Location Bar ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -234,58 +234,6 @@ export function Dashboard({
             </motion.button>
           </div>
         </div>
-
-        {/* ── Dedicated SOS Emergency Bar ── */}
-        <SosButton
-          userSession={userSession}
-          currentTempC={currentTemp}
-          heatScore={result.totalScore}
-          fullWidth
-        />
-
-        {/* ── Web Application Promo Banner Card ── */}
-        <GlassCard
-          onClick={onOpenWebPromo}
-          style={{
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%)',
-            border: '1px solid rgba(245, 158, 11, 0.35)',
-            padding: '12px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 10,
-            cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(245, 158, 11, 0.1)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'rgba(245, 158, 11, 0.25)',
-              border: '1px solid rgba(245, 158, 11, 0.5)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-            }}>
-              <Globe size={18} color="#F59E0B" />
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>Heat Prediction Web App</span>
-                <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, background: '#F59E0B', color: '#000', fontWeight: 900 }}>
-                  WEB
-                </span>
-              </div>
-              <div style={{ fontSize: 11, color: '#D4D4D8', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                Check out our web app at heat-watch-beta.vercel.app
-              </div>
-            </div>
-          </div>
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.12)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-          }}>
-            <ExternalLink size={14} color="#FFF" />
-          </div>
-        </GlassCard>
 
         {/* ── Location Search Panel ── */}
         <AnimatePresence>
@@ -386,166 +334,216 @@ export function Dashboard({
           )}
         </AnimatePresence>
 
-        {/* Hero Score Gauge — highest elevation glass */}
-        <GlassCard tier={tier} elevation="hero">
-          <ScoreGauge score={result.totalScore} tier={tier} recommendedAction={result.recommendedAction} />
-        </GlassCard>
+        {/* ── Main Responsive Grid ── */}
+        <div className="hw-dashboard-grid">
 
-        {/* Predicted Medical Condition Risk Card */}
-        <MedicalPredictionCard predictionResult={medicalResult} />
-
-        {/* Real-time Stat Chips — horizontally scrollable */}
-        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
-          <GlassChip icon={Thermometer} label="Temp" value={formatTemp(currentTemp)} color="#FFFFFF" />
-          <GlassChip icon={Eye} label="Feels" value={formatTemp(currentFeels)} color="#A1A1AA" />
-          <GlassChip icon={Droplets} label="Humidity" value={`${currentHumidity}%`} color="#FFFFFF" />
-          <GlassChip icon={Sun} label="UV Index" value={`${currentUv}`} color="#FFFFFF" />
-          {weather?.windSpeedKmh !== undefined && weather.windSpeedKmh > 0 && (
-            <GlassChip icon={Wind} label="Wind" value={`${weather.windSpeedKmh} km/h`} color="#E4E4E7" />
-          )}
-          {weather?.precipMm !== undefined && weather.precipMm > 0 && (
-            <GlassChip icon={CloudRain} label="Rain" value={`${weather.precipMm.toFixed(1)} mm`} color="#E4E4E7" />
-          )}
-          {weather?.weatherCondition && (() => {
-            const cl = conditionLabel(weather.weatherCondition);
-            return (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 20,
-                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-                whiteSpace: 'nowrap', flexShrink: 0,
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>{cl.label}</span>
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Risk Factor Pills */}
-        <div>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#A1A1AA', marginBottom: 10 }}>
-            Risk Factors Contributing to Score
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {result.factors.map((f) => (
-              <GlassChip
-                key={f.label}
-                label={f.label}
-                value={`+${f.points}`}
-                color={tierColor.bg}
-                onClick={() => setSelectedFactor(f)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Factor explanation bottom-sheet */}
-        <AnimatePresence>
-          {selectedFactor && (
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
-              transition={{ type: 'spring', damping: 25 }}
-            >
-              <GlassCard tier={tier} style={{ position: 'relative' }}>
-                <button onClick={() => setSelectedFactor(null)} style={{
-                  position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
-                  color: '#A1A1AA', cursor: 'pointer',
-                }}><X size={18} /></button>
-                <h4 style={{ fontSize: 16, fontWeight: 800, color: '#FFF', marginBottom: 4 }}>
-                  {selectedFactor.label} — +{selectedFactor.points} pts
-                </h4>
-                <p style={{ fontSize: 13, color: '#E4E4E7', lineHeight: 1.6 }}>{selectedFactor.reason}</p>
-              </GlassCard>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Live Forecast Score Trend Chart */}
-        <GlassCard>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#A1A1AA' }}>Real-time Hourly Forecast Trend</h3>
-            <span style={{ fontSize: 11, color: '#52525B', fontWeight: 600 }}>Open-Meteo API</span>
-          </div>
-
-          <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={trendData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255,255,255,0.2)', borderRadius: 12,
-                  fontSize: 12, color: '#FFFFFF',
-                }}
-                labelStyle={{ color: '#A1A1AA' }}
-              />
-              <Area type="monotone" dataKey="score" stroke="#FFFFFF" strokeWidth={2.5} fill="url(#trendFill)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </GlassCard>
-
-        {/* ── Best time to go outside ── */}
-        {weather && (
-          <OutdoorTimeSuggestion
-            hourlyTrend={weather.hourlyTrend}
-            scoringBase={{
-              humidity: currentHumidity,
-              uvIndex: currentUv,
-              ...realUserProfile,
-            }}
-            tempUnit={tempUnit}
-          />
-        )}
-
-        {/* ── Constant Hydration Reminder ── */}
-        <HydrationReminder
-          tempC={currentTemp}
-          tier={tier}
-          gender={userSession?.gender}
-          weightKg={userSession?.weightKg}
-        />
-
-        {/* ── Clothing recommendation ── */}
-        <ClothingRecommendation
-          tempC={currentTemp}
-          uvIndex={currentUv}
-          tier={tier}
-          skinType={userSession?.skinType}
-          tempUnit={tempUnit}
-          weatherCondition={weather?.weatherCondition}
-          windSpeedKmh={weather?.windSpeedKmh}
-          precipMm={weather?.precipMm}
-          humidityPct={currentHumidity}
-        />
-
-        {/* Hydration card */}
-        <GlassCard>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Droplets size={18} color="#FFFFFF" />
-              <span style={{ fontWeight: 700, color: '#FFF' }}>Hydration Target</span>
-            </div>
-            <span style={{ fontWeight: 900, color: '#FFFFFF', fontSize: 18 }}>{hydrationPct}%</span>
-          </div>
-          {/* Progress bar */}
-          <div style={{ width: '100%', height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden' }}>
-            <motion.div
-              animate={{ width: `${hydrationPct}%` }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              style={{ height: '100%', background: '#FFFFFF', borderRadius: 10 }}
+          {/* ── LEFT COLUMN (Primary Focus on Desktop) ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Dedicated SOS Emergency Bar */}
+            <SosButton
+              userSession={userSession}
+              currentTempC={currentTemp}
+              heatScore={result.totalScore}
+              fullWidth
             />
+
+            {/* Web Application Promo Banner Card */}
+            <GlassCard
+              onClick={onOpenWebPromo}
+              style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                padding: '12px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 10,
+                cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(245, 158, 11, 0.1)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'rgba(245, 158, 11, 0.25)',
+                  border: '1px solid rgba(245, 158, 11, 0.5)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                }}>
+                  <Globe size={18} color="#F59E0B" />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#FFF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>Heat Prediction Web App</span>
+                    <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 8, background: '#F59E0B', color: '#000', fontWeight: 900 }}>
+                      WEB
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#D4D4D8', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    Check out our web app at heat-watch-beta.vercel.app
+                  </div>
+                </div>
+              </div>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.12)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              }}>
+                <ExternalLink size={14} color="#FFF" />
+              </div>
+            </GlassCard>
+
+            {/* Hero Score Gauge */}
+            <GlassCard tier={tier} elevation="hero">
+              <ScoreGauge score={result.totalScore} tier={tier} recommendedAction={result.recommendedAction} />
+            </GlassCard>
+
+            {/* Live Forecast Score Trend Chart */}
+            <GlassCard>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#A1A1AA' }}>Real-time Hourly Forecast Trend</h3>
+                <span style={{ fontSize: 11, color: '#52525B', fontWeight: 600 }}>Open-Meteo API</span>
+              </div>
+
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart data={trendData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#71717A' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255,255,255,0.2)', borderRadius: 12,
+                      fontSize: 12, color: '#FFFFFF',
+                    }}
+                    labelStyle={{ color: '#A1A1AA' }}
+                  />
+                  <Area type="monotone" dataKey="score" stroke="#FFFFFF" strokeWidth={2.5} fill="url(#trendFill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </GlassCard>
+
+            {/* Best time to go outside */}
+            {weather && (
+              <OutdoorTimeSuggestion
+                hourlyTrend={weather.hourlyTrend}
+                scoringBase={{
+                  humidity: currentHumidity,
+                  uvIndex: currentUv,
+                  ...realUserProfile,
+                }}
+                tempUnit={tempUnit}
+              />
+            )}
+
+            {/* Risk Factor Pills */}
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#A1A1AA', marginBottom: 10 }}>
+                Risk Factors Contributing to Score
+              </h3>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {result.factors.map((f) => (
+                  <GlassChip
+                    key={f.label}
+                    label={f.label}
+                    value={`+${f.points}`}
+                    color={tierColor.bg}
+                    onClick={() => setSelectedFactor(f)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Factor explanation sheet */}
+            <AnimatePresence>
+              {selectedFactor && (
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 40 }}
+                  transition={{ type: 'spring', damping: 25 }}
+                >
+                  <GlassCard tier={tier} style={{ position: 'relative' }}>
+                    <button onClick={() => setSelectedFactor(null)} style={{
+                      position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
+                      color: '#A1A1AA', cursor: 'pointer',
+                    }}><X size={18} /></button>
+                    <h4 style={{ fontSize: 16, fontWeight: 800, color: '#FFF', marginBottom: 4 }}>
+                      {selectedFactor.label} — +{selectedFactor.points} pts
+                    </h4>
+                    <p style={{ fontSize: 13, color: '#E4E4E7', lineHeight: 1.6 }}>{selectedFactor.reason}</p>
+                  </GlassCard>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: '#A1A1AA' }}>
-            <span>{hydrationMl.toLocaleString()} ml / {hydrationTarget.toLocaleString()} ml</span>
+
+          {/* ── RIGHT COLUMN (Metrics & Analytics on Desktop) ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Real-time Stat Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
+              <GlassChip icon={Thermometer} label="Temp" value={formatTemp(currentTemp)} color="#FFFFFF" />
+              <GlassChip icon={Eye} label="Feels" value={formatTemp(currentFeels)} color="#A1A1AA" />
+              <GlassChip icon={Droplets} label="Humidity" value={`${currentHumidity}%`} color="#FFFFFF" />
+              <GlassChip icon={Sun} label="UV Index" value={`${currentUv}`} color="#FFFFFF" />
+              {weather?.windSpeedKmh !== undefined && weather.windSpeedKmh > 0 && (
+                <GlassChip icon={Wind} label="Wind" value={`${weather.windSpeedKmh} km/h`} color="#E4E4E7" />
+              )}
+              {weather?.precipMm !== undefined && weather.precipMm > 0 && (
+                <GlassChip icon={CloudRain} label="Rain" value={`${weather.precipMm.toFixed(1)} mm`} color="#E4E4E7" />
+              )}
+            </div>
+
+            {/* Predicted Medical Condition Risk Card */}
+            <MedicalPredictionCard predictionResult={medicalResult} />
+
+            {/* Clothing recommendation */}
+            <ClothingRecommendation
+              tempC={currentTemp}
+              uvIndex={currentUv}
+              tier={tier}
+              skinType={userSession?.skinType}
+              tempUnit={tempUnit}
+              weatherCondition={weather?.weatherCondition}
+              windSpeedKmh={weather?.windSpeedKmh}
+              precipMm={weather?.precipMm}
+              humidityPct={currentHumidity}
+            />
+
+            {/* Constant Hydration Reminder */}
+            <HydrationReminder
+              tempC={currentTemp}
+              tier={tier}
+              gender={userSession?.gender}
+              weightKg={userSession?.weightKg}
+            />
+
+            {/* Hydration card */}
+            <GlassCard>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Droplets size={18} color="#FFFFFF" />
+                  <span style={{ fontWeight: 700, color: '#FFF' }}>Hydration Target</span>
+                </div>
+                <span style={{ fontWeight: 900, color: '#FFFFFF', fontSize: 18 }}>{hydrationPct}%</span>
+              </div>
+              <div style={{ width: '100%', height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden' }}>
+                <motion.div
+                  animate={{ width: `${hydrationPct}%` }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  style={{ height: '100%', background: '#FFFFFF', borderRadius: 10 }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: '#A1A1AA' }}>
+                <span>{hydrationMl.toLocaleString()} ml / {hydrationTarget.toLocaleString()} ml</span>
+              </div>
+            </GlassCard>
           </div>
-        </GlassCard>
+
+        </div>
 
       </div>
 

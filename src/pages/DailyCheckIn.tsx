@@ -143,7 +143,7 @@ export function DailyCheckInScreen({ onComplete, userName = 'there' }: DailyChec
   return (
     <AnimatedGradientBackground tier="safe">
       <div style={{
-        maxWidth: 440, margin: '0 auto', padding: '40px 20px',
+        maxWidth: 560, margin: '0 auto', padding: '40px 20px',
         minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center',
       }}>
         {/* Header */}

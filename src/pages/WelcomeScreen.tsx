@@ -43,15 +43,10 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="hw-split-hero"
         style={{
           position: 'relative',
           zIndex: 10,
-          maxWidth: 480,
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 24,
           textAlign: 'center',
           margin: 'auto 0',
         }}

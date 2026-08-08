@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { App as CapacitorApp } from '@capacitor/app';
-import { Home, Bell, Droplets, User, Settings, Briefcase, LogOut, MapPinOff } from 'lucide-react';
+import { Home, Bell, Droplets, User, Settings, Briefcase, LogOut, MapPinOff, Shield, MapPin } from 'lucide-react';
 import { GlassCard } from './components/ui/GlassCard';
 import { Dashboard } from './pages/Dashboard';
 import { Onboarding } from './pages/Onboarding';
@@ -298,6 +298,76 @@ export default function App() {
 
   return (
     <>
+      {/* ── Desktop Top Header Bar (visible on laptops & PCs >= 768px) ── */}
+      <header className="desktop-nav-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 12,
+            background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Shield size={20} color="#FFFFFF" />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: '#FFF', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 8 }}>
+              HeatWatch
+              <span style={{
+                fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 8,
+                background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
+                color: '#FFF', textTransform: 'uppercase'
+              }}>
+                Desktop Pro
+              </span>
+            </div>
+            {weather && (
+              <div style={{ fontSize: 11, color: '#A1A1AA', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <MapPin size={10} color="#A1A1AA" />
+                <span>{weather.cityName} • {weather.tempC.toFixed(1)}°C</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Navigation Tabs */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', padding: '4px 6px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)' }}>
+          {dockItems.map((item) => {
+            const active = item.isActive;
+            return (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 12,
+                  background: active ? 'rgba(255,255,255,0.18)' : 'transparent',
+                  border: active ? '1px solid rgba(255,255,255,0.35)' : '1px solid transparent',
+                  color: active ? '#FFFFFF' : '#A1A1AA',
+                  fontWeight: active ? 800 : 600, fontSize: 13, cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* User Quick Info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#FFF' }}>{activeSession.name}</div>
+            <div style={{ fontSize: 11, color: '#A1A1AA' }}>{activeSession.age} yrs • {activeSession.weightKg} kg</div>
+          </div>
+          <div style={{
+            width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 14, fontWeight: 800, color: '#FFF',
+          }}>
+            {activeSession.name ? activeSession.name.charAt(0).toUpperCase() : 'U'}
+          </div>
+        </div>
+      </header>
+
       <AnimatePresence mode="wait">
         <motion.div
           key={tab}

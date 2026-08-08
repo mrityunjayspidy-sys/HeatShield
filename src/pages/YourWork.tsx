@@ -233,7 +233,7 @@ export function YourWorkPage({
 
   return (
     <AnimatedGradientBackground tier="safe">
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px 100px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="hw-container">
 
         {/* Page header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -272,306 +272,312 @@ export function YourWorkPage({
         {!checkIn && <EmptyState onEditCheckIn={onEditCheckIn} />}
 
         {checkIn && (
-          <>
-            {/* Work Summary Card */}
-            <GlassCard elevation="hero">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Location + overall risk */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <MapPin size={15} color="#FFD640" />
-                      <span style={{ fontSize: 16, fontWeight: 900, color: '#FFF' }}>
-                        {checkIn.workLocationLabel}
-                      </span>
+          <div className="hw-two-col-grid">
+            {/* ── LEFT COLUMN (Work Shift Summary & Timeline) ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Work Summary Card */}
+              <GlassCard elevation="hero">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {/* Location + overall risk */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <MapPin size={15} color="#FFD640" />
+                        <span style={{ fontSize: 16, fontWeight: 900, color: '#FFF' }}>
+                          {checkIn.workLocationLabel}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#64748B' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={11} /> {checkIn.workStart} → {checkIn.workEnd}
+                        </span>
+                        <span>·</span>
+                        <span>{workDurationH} hrs</span>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#64748B' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Clock size={11} /> {checkIn.workStart} → {checkIn.workEnd}
-                      </span>
-                      <span>·</span>
-                      <span>{workDurationH} hrs</span>
+
+                    {/* Overall risk badge */}
+                    <div style={{
+                      padding: '8px 14px', borderRadius: 14,
+                      background: `${tierColor.bg}22`,
+                      border: `1.5px solid ${tierColor.bg}55`,
+                      textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>Work Risk</div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: tierColor.bg }}>
+                        {overallTier.charAt(0).toUpperCase() + overallTier.slice(1)}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Overall risk badge */}
-                  <div style={{
-                    padding: '8px 14px', borderRadius: 14,
-                    background: `${tierColor.bg}22`,
-                    border: `1.5px solid ${tierColor.bg}55`,
-                    textAlign: 'center',
-                  }}>
-                    <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>Work Risk</div>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: tierColor.bg }}>
-                      {overallTier.charAt(0).toUpperCase() + overallTier.slice(1)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stat pills */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-                    borderRadius: 20, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                  }}>
-                    <Sun size={12} color="#FBBF24" />
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>
-                      {checkIn.sunExposureHours === 0 ? 'No sun' : checkIn.sunExposureHours <= 0.5 ? '30 min sun' : `${checkIn.sunExposureHours} hrs sun`}
-                    </span>
-                  </div>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-                    borderRadius: 20, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                  }}>
-                    <TrendingUp size={12} color="#A78BFA" />
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>
-                      {checkIn.activityLevel.charAt(0).toUpperCase() + checkIn.activityLevel.slice(1)} activity
-                    </span>
-                  </div>
-                  {weather && (
+                  {/* Stat pills */}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
                       borderRadius: 20, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
                     }}>
-                      <Thermometer size={12} color="#F59E0B" />
+                      <Sun size={12} color="#FBBF24" />
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>
-                        {formatTemp(weather.tempC, tempUnit)} now
+                        {checkIn.sunExposureHours === 0 ? 'No sun' : checkIn.sunExposureHours <= 0.5 ? '30 min sun' : `${checkIn.sunExposureHours} hrs sun`}
                       </span>
+                    </div>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+                      borderRadius: 20, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                    }}>
+                      <TrendingUp size={12} color="#A78BFA" />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>
+                        {checkIn.activityLevel.charAt(0).toUpperCase() + checkIn.activityLevel.slice(1)} activity
+                      </span>
+                    </div>
+                    {weather && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+                        borderRadius: 20, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                      }}>
+                        <Thermometer size={12} color="#F59E0B" />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#E2E8F0' }}>
+                          {formatTemp(weather.tempC, tempUnit)} now
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Notes */}
+                  {checkIn.notes && (
+                    <div style={{
+                      padding: '10px 14px', borderRadius: 12,
+                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                      fontSize: 12, color: '#A1A1AA', lineHeight: 1.6, fontStyle: 'italic',
+                    }}>
+                      📝 {checkIn.notes}
                     </div>
                   )}
                 </div>
+              </GlassCard>
 
-                {/* Notes */}
-                {checkIn.notes && (
-                  <div style={{
-                    padding: '10px 14px', borderRadius: 12,
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-                    fontSize: 12, color: '#A1A1AA', lineHeight: 1.6, fontStyle: 'italic',
-                  }}>
-                    📝 {checkIn.notes}
+              {/* Hourly Work Timeline */}
+              {timeline.length > 0 && (
+                <GlassCard>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <Clock size={16} color="#FFD640" />
+                    <h3 style={{ fontSize: 14, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
+                      Hourly Heat Risk — Your Work Hours
+                    </h3>
                   </div>
-                )}
-              </div>
-            </GlassCard>
 
-            {/* Hourly Work Timeline */}
-            {timeline.length > 0 && (
+                  {/* Bar chart */}
+                  <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 80, marginBottom: 10 }}>
+                    {timeline.map((slot, i) => {
+                      const tc = TIER_COLORS[slot.tier];
+                      const barH = Math.max((slot.score / 100) * 70, 6);
+                      const isNow = slot.label === 'Now';
+                      return (
+                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: barH }}
+                            transition={{ delay: i * 0.06, type: 'spring', damping: 18 }}
+                            style={{
+                              width: '100%', borderRadius: 6,
+                              background: tc.bg,
+                              opacity: isNow ? 1 : 0.6,
+                              boxShadow: isNow ? `0 0 10px ${tc.glow}` : 'none',
+                              position: 'relative',
+                            }}
+                          >
+                            {isNow && (
+                              <motion.div
+                                animate={{ opacity: [1, 0.3, 1] }}
+                                transition={{ repeat: Infinity, duration: 1.4 }}
+                                style={{
+                                  position: 'absolute', top: -3, left: '50%', transform: 'translateX(-50%)',
+                                  width: 6, height: 6, borderRadius: '50%', background: '#FFF',
+                                }}
+                              />
+                            )}
+                          </motion.div>
+                          <span style={{
+                            fontSize: 8, color: isNow ? '#FFD640' : '#52525B',
+                            fontWeight: isNow ? 900 : 500,
+                            whiteSpace: 'nowrap',
+                            textAlign: 'center',
+                          }}>
+                            {slot.label}
+                          </span>
+                          <span style={{ fontSize: 8, color: tc.bg, fontWeight: 700 }}>
+                            {slot.score}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Timeline detail cards */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                    {timeline.map((slot, i) => {
+                      const { icon: TierIcon, color, label } = TIER_ICON[slot.tier];
+                      const isNow = slot.label === 'Now';
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '10px 14px', borderRadius: 12,
+                            background: isNow ? 'rgba(255,214,64,0.1)' : 'rgba(255,255,255,0.04)',
+                            border: `1px solid ${isNow ? 'rgba(255,214,64,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                          }}
+                        >
+                          <TierIcon size={15} color={color} />
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: isNow ? '#FFD640' : '#CBD5E1' }}>
+                              {slot.label}
+                            </span>
+                            <span style={{ fontSize: 11, color: '#64748B', marginLeft: 8 }}>
+                              {formatTemp(slot.tempC, tempUnit)}
+                            </span>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color }}>{label}</div>
+                            <div style={{ fontSize: 10, color: '#52525B' }}>Score {slot.score}</div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
+              )}
+            </div>
+
+            {/* ── RIGHT COLUMN (Protection, Hydration Target & Recovery) ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Recommendations */}
               <GlassCard>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <Clock size={16} color="#FFD640" />
+                  <Shield size={16} color="#10B981" />
                   <h3 style={{ fontSize: 14, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
-                    Hourly Heat Risk — Your Work Hours
+                    Personalised Protections for Today
                   </h3>
                 </div>
 
-                {/* Bar chart */}
-                <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 80, marginBottom: 10 }}>
-                  {timeline.map((slot, i) => {
-                    const tc = TIER_COLORS[slot.tier];
-                    const barH = Math.max((slot.score / 100) * 70, 6);
-                    const isNow = slot.label === 'Now';
-                    return (
-                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <AnimatePresence>
+                    {visibleRecs.map((rec, i) => {
+                      const borderColor = rec.priority === 'high'
+                        ? 'rgba(239,68,68,0.35)'
+                        : rec.priority === 'medium'
+                        ? 'rgba(245,158,11,0.3)'
+                        : 'rgba(255,255,255,0.1)';
+                      const bgColor = rec.priority === 'high'
+                        ? 'rgba(239,68,68,0.08)'
+                        : rec.priority === 'medium'
+                        ? 'rgba(245,158,11,0.07)'
+                        : 'rgba(255,255,255,0.04)';
+
+                      return (
                         <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: barH }}
-                          transition={{ delay: i * 0.06, type: 'spring', damping: 18 }}
+                          key={i}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ delay: i * 0.05 }}
                           style={{
-                            width: '100%', borderRadius: 6,
-                            background: tc.bg,
-                            opacity: isNow ? 1 : 0.6,
-                            boxShadow: isNow ? `0 0 10px ${tc.glow}` : 'none',
-                            position: 'relative',
+                            display: 'flex', gap: 12, padding: '12px 14px', borderRadius: 14,
+                            background: bgColor, border: `1px solid ${borderColor}`,
                           }}
                         >
-                          {isNow && (
-                            <motion.div
-                              animate={{ opacity: [1, 0.3, 1] }}
-                              transition={{ repeat: Infinity, duration: 1.4 }}
-                              style={{
-                                position: 'absolute', top: -3, left: '50%', transform: 'translateX(-50%)',
-                                width: 6, height: 6, borderRadius: '50%', background: '#FFF',
-                              }}
-                            />
-                          )}
+                          <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{rec.emoji}</span>
+                          <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.6, margin: 0 }}>
+                            {rec.text}
+                          </p>
                         </motion.div>
-                        <span style={{
-                          fontSize: 8, color: isNow ? '#FFD640' : '#52525B',
-                          fontWeight: isNow ? 900 : 500,
-                          whiteSpace: 'nowrap',
-                          textAlign: 'center',
-                        }}>
-                          {slot.label}
-                        </span>
-                        <span style={{ fontSize: 8, color: tc.bg, fontWeight: 700 }}>
-                          {slot.score}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
 
-                {/* Timeline detail cards */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-                  {timeline.map((slot, i) => {
-                    const { icon: TierIcon, color, label } = TIER_ICON[slot.tier];
-                    const isNow = slot.label === 'Now';
-                    return (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '10px 14px', borderRadius: 12,
-                          background: isNow ? 'rgba(255,214,64,0.1)' : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${isNow ? 'rgba(255,214,64,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                        }}
-                      >
-                        <TierIcon size={15} color={color} />
-                        <div style={{ flex: 1 }}>
-                          <span style={{ fontSize: 13, fontWeight: 800, color: isNow ? '#FFD640' : '#CBD5E1' }}>
-                            {slot.label}
-                          </span>
-                          <span style={{ fontSize: 11, color: '#64748B', marginLeft: 8 }}>
-                            {formatTemp(slot.tempC, tempUnit)}
-                          </span>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color }}>{label}</div>
-                          <div style={{ fontSize: 10, color: '#52525B' }}>Score {slot.score}</div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                {recommendations.length > 3 && (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowAllRecs(!showAllRecs)}
+                    type="button"
+                    style={{
+                      width: '100%', marginTop: 10, padding: '10px', borderRadius: 12,
+                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#94A3B8', fontWeight: 700, fontSize: 12, cursor: 'pointer',
+                    }}
+                  >
+                    {showAllRecs ? '↑ Show Less' : `↓ Show All ${recommendations.length} Tips`}
+                  </motion.button>
+                )}
               </GlassCard>
-            )}
 
-            {/* Recommendations */}
-            <GlassCard>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <Shield size={16} color="#10B981" />
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
-                  Personalised Protections for Today
-                </h3>
-              </div>
+              {/* Hydration target for the day */}
+              <GlassCard>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <Droplets size={16} color="#38BDF8" />
+                  <h3 style={{ fontSize: 14, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
+                    Hydration Target for Today
+                  </h3>
+                </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <AnimatePresence>
-                  {visibleRecs.map((rec, i) => {
-                    const borderColor = rec.priority === 'high'
-                      ? 'rgba(239,68,68,0.35)'
-                      : rec.priority === 'medium'
-                      ? 'rgba(245,158,11,0.3)'
-                      : 'rgba(255,255,255,0.1)';
-                    const bgColor = rec.priority === 'high'
-                      ? 'rgba(239,68,68,0.08)'
-                      : rec.priority === 'medium'
-                      ? 'rgba(245,158,11,0.07)'
-                      : 'rgba(255,255,255,0.04)';
+                {(() => {
+                  const baseL = 2.5;
+                  const actAdd = checkIn.activityLevel === 'heavy' ? 2.0 : checkIn.activityLevel === 'moderate' ? 1.0 : 0.3;
+                  const sunAdd = checkIn.sunExposureHours * 0.25;
+                  const heatAdd = overallTier === 'danger' ? 1.0 : overallTier === 'warning' ? 0.5 : 0;
+                  const total = +(baseL + actAdd + sunAdd + heatAdd).toFixed(1);
 
-                    return (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        style={{
-                          display: 'flex', gap: 12, padding: '12px 14px', borderRadius: 14,
-                          background: bgColor, border: `1px solid ${borderColor}`,
-                        }}
-                      >
-                        <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{rec.emoji}</span>
-                        <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.6, margin: 0 }}>
-                          {rec.text}
-                        </p>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-
-              {recommendations.length > 3 && (
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowAllRecs(!showAllRecs)}
-                  type="button"
-                  style={{
-                    width: '100%', marginTop: 10, padding: '10px', borderRadius: 12,
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#94A3B8', fontWeight: 700, fontSize: 12, cursor: 'pointer',
-                  }}
-                >
-                  {showAllRecs ? '↑ Show Less' : `↓ Show All ${recommendations.length} Tips`}
-                </motion.button>
-              )}
-            </GlassCard>
-
-            {/* Hydration target for the day */}
-            <GlassCard>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Droplets size={16} color="#38BDF8" />
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
-                  Hydration Target for Today
-                </h3>
-              </div>
-
-              {(() => {
-                const baseL = 2.5;
-                const actAdd = checkIn.activityLevel === 'heavy' ? 2.0 : checkIn.activityLevel === 'moderate' ? 1.0 : 0.3;
-                const sunAdd = checkIn.sunExposureHours * 0.25;
-                const heatAdd = overallTier === 'danger' ? 1.0 : overallTier === 'warning' ? 0.5 : 0;
-                const total = +(baseL + actAdd + sunAdd + heatAdd).toFixed(1);
-
-                return (
-                  <div>
-                    <div style={{ fontSize: 32, fontWeight: 900, color: '#38BDF8', marginBottom: 4 }}>
-                      {total}L
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#64748B', marginLeft: 6 }}>today's target</span>
+                  return (
+                    <div>
+                      <div style={{ fontSize: 32, fontWeight: 900, color: '#38BDF8', marginBottom: 4 }}>
+                        {total}L
+                        <span style={{ fontSize: 14, fontWeight: 600, color: '#64748B', marginLeft: 6 }}>today's target</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
+                        {[
+                          { label: 'Base daily requirement', val: `${baseL}L` },
+                          { label: `${checkIn.activityLevel} activity`, val: `+${actAdd}L` },
+                          { label: `${checkIn.sunExposureHours} hrs sun exposure`, val: `+${sunAdd.toFixed(1)}L` },
+                          ...(heatAdd > 0 ? [{ label: `${overallTier} heat conditions`, val: `+${heatAdd}L` }] : []),
+                        ].map(({ label, val }) => (
+                          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                            <span style={{ color: '#64748B' }}>{label}</span>
+                            <span style={{ color: '#38BDF8', fontWeight: 700 }}>{val}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{
+                        marginTop: 12, padding: '10px 14px', borderRadius: 12,
+                        background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.25)',
+                        fontSize: 12, color: '#7DD3FC',
+                      }}>
+                        💧 Drink roughly <strong>{Math.round((total * 1000) / Math.max(1, parseFloat(workDurationH.toString())))}</strong>ml per hour during your {workDurationH}-hour workday.
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
-                      {[
-                        { label: 'Base daily requirement', val: `${baseL}L` },
-                        { label: `${checkIn.activityLevel} activity`, val: `+${actAdd}L` },
-                        { label: `${checkIn.sunExposureHours} hrs sun exposure`, val: `+${sunAdd.toFixed(1)}L` },
-                        ...(heatAdd > 0 ? [{ label: `${overallTier} heat conditions`, val: `+${heatAdd}L` }] : []),
-                      ].map(({ label, val }) => (
-                        <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                          <span style={{ color: '#64748B' }}>{label}</span>
-                          <span style={{ color: '#38BDF8', fontWeight: 700 }}>{val}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{
-                      marginTop: 12, padding: '10px 14px', borderRadius: 12,
-                      background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.25)',
-                      fontSize: 12, color: '#7DD3FC',
-                    }}>
-                      💧 Drink roughly <strong>{Math.round((total * 1000) / Math.max(1, parseFloat(workDurationH.toString())))}</strong>ml per hour during your {workDurationH}-hour workday.
-                    </div>
-                  </div>
-                );
-              })()}
-            </GlassCard>
+                  );
+                })()}
+              </GlassCard>
 
-            {/* Wind-down tip */}
-            <GlassCard>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Wind size={15} color="#A78BFA" />
-                <h3 style={{ fontSize: 13, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
-                  End-of-Day Recovery
-                </h3>
-              </div>
-              <p style={{ fontSize: 12, color: '#94A3B8', lineHeight: 1.7 }}>
-                After {checkIn.workEnd}, take a cool shower or use a damp towel on your neck and wrists.
-                Drink 500ml of water or electrolyte drink within 30 minutes of finishing work.
-                Avoid heavy meals for the first hour — your body is still cooling down.
-              </p>
-            </GlassCard>
-          </>
+              {/* Wind-down tip */}
+              <GlassCard>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <Wind size={15} color="#A78BFA" />
+                  <h3 style={{ fontSize: 13, fontWeight: 800, color: '#E2E8F0', margin: 0 }}>
+                    End-of-Day Recovery
+                  </h3>
+                </div>
+                <p style={{ fontSize: 12, color: '#94A3B8', lineHeight: 1.7 }}>
+                  After {checkIn.workEnd}, take a cool shower or use a damp towel on your neck and wrists.
+                  Drink 500ml of water or electrolyte drink within 30 minutes of finishing work.
+                  Avoid heavy meals for the first hour — your body is still cooling down.
+                </p>
+              </GlassCard>
+            </div>
+          </div>
         )}
       </div>
     </AnimatedGradientBackground>

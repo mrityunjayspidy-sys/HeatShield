@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, AlertTriangle, Flame, Droplets, Sun, Wind, Thermometer, Heart } from 'lucide-react';
+import { Bell, Check, AlertTriangle, Flame, Droplets, Sun, Wind, Thermometer, Heart, Shield } from 'lucide-react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { AnimatedGradientBackground } from '../components/ui/AnimatedGradientBackground';
 import type { RiskTier } from '../lib/scoring';
@@ -319,15 +319,15 @@ export function AlertsHistory({ userSession, weather }: AlertsHistoryProps) {
 
   return (
     <AnimatedGradientBackground tier="safe">
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px 40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+      <div className="hw-container">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Bell size={22} color="#CBD5E1" />
           <h1 style={{ fontSize: 22, fontWeight: 900, color: '#FFF' }}>Alerts & History</h1>
         </div>
 
         {/* Live status indicator */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20,
+          display: 'flex', alignItems: 'center', gap: 8,
           fontSize: 12, color: '#A1A1AA',
         }}>
           <div style={{
@@ -352,63 +352,128 @@ export function AlertsHistory({ userSession, weather }: AlertsHistoryProps) {
           )}
         </div>
 
-        {/* Timeline */}
-        <div style={{ position: 'relative', paddingLeft: 22 }}>
-          {/* Vertical line */}
-          <div style={{
-            position: 'absolute', left: 5, top: 0, bottom: 0, width: 2,
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0.05))',
-          }} />
+        {/* ── Desktop Two Column Split Grid ── */}
+        <div className="hw-alerts-grid">
 
-          <AnimatePresence>
-            {alerts.map((alert, i) => {
-              const color = TIER_COLORS[alert.tier];
-              return (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  style={{ marginBottom: 16, position: 'relative' }}
-                >
-                  {/* Timeline dot */}
-                  <div style={{
-                    position: 'absolute', left: -22, top: 22, width: 12, height: 12, borderRadius: '50%',
-                    background: color.bg, boxShadow: `0 0 10px ${color.glow}`,
-                  }} />
+          {/* Left Column: Timeline Feed */}
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#A1A1AA', marginBottom: 14 }}>
+              Alert History Timeline
+            </h3>
 
-                  <GlassCard style={{ borderLeft: `3px solid ${color.bg}`, opacity: alert.acknowledged ? 0.6 : 1, userSelect: 'none' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: color.bg, marginBottom: 6 }}>
-                        {iconForAlert(alert)}
-                        <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
-                          {alert.tier}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: 11, color: '#64748B' }}>{alert.timestamp}</span>
-                    </div>
-                    <p style={{ fontSize: 14, color: '#E2E8F0', lineHeight: 1.5, marginBottom: 10 }}>
-                      {alert.message}
-                    </p>
-                    {!alert.acknowledged && (
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => acknowledge(alert.id)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 6,
-                          padding: '8px 14px', borderRadius: 12,
-                          background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
-                          color: '#CBD5E1', fontWeight: 700, fontSize: 12, cursor: 'pointer',
-                        }}
-                      >
-                        <Check size={14} /> Acknowledge
-                      </motion.button>
-                    )}
-                  </GlassCard>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+            <div style={{ position: 'relative', paddingLeft: 22 }}>
+              {/* Vertical line */}
+              <div style={{
+                position: 'absolute', left: 5, top: 0, bottom: 0, width: 2,
+                background: 'linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0.05))',
+              }} />
+
+              <AnimatePresence>
+                {alerts.map((alert, i) => {
+                  const color = TIER_COLORS[alert.tier];
+                  return (
+                    <motion.div
+                      key={alert.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      style={{ marginBottom: 16, position: 'relative' }}
+                    >
+                      {/* Timeline dot */}
+                      <div style={{
+                        position: 'absolute', left: -22, top: 22, width: 12, height: 12, borderRadius: '50%',
+                        background: color.bg, boxShadow: `0 0 10px ${color.glow}`,
+                      }} />
+
+                      <GlassCard style={{ borderLeft: `3px solid ${color.bg}`, opacity: alert.acknowledged ? 0.6 : 1, userSelect: 'none' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: color.bg, marginBottom: 6 }}>
+                            {iconForAlert(alert)}
+                            <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
+                              {alert.tier}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: 11, color: '#64748B' }}>{alert.timestamp}</span>
+                        </div>
+                        <p style={{ fontSize: 14, color: '#E2E8F0', lineHeight: 1.5, marginBottom: 10 }}>
+                          {alert.message}
+                        </p>
+                        {!alert.acknowledged && (
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => acknowledge(alert.id)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              padding: '8px 14px', borderRadius: 12,
+                              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)',
+                              color: '#CBD5E1', fontWeight: 700, fontSize: 12, cursor: 'pointer',
+                            }}
+                          >
+                            <Check size={14} /> Acknowledge
+                          </motion.button>
+                        )}
+                      </GlassCard>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Right Column: Desktop Advisory & Emergency Protocols Card */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <GlassCard elevation="hero">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <Shield size={20} color="#F59E0B" />
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#FFF', margin: 0 }}>
+                  Safety & Advisory Center
+                </h3>
+              </div>
+
+              <p style={{ fontSize: 13, color: '#A1A1AA', lineHeight: 1.6, marginBottom: 16 }}>
+                HeatWatch automatically monitors weather stations and NOAA indices to push real-time alerts when ambient temperatures or UV indices exceed safe health thresholds.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{
+                  padding: '12px 14px', borderRadius: 14,
+                  background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)',
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#EF4444', marginBottom: 4 }}>
+                    🔴 Extreme Heat Advisory Protocol
+                  </div>
+                  <div style={{ fontSize: 12, color: '#CBD5E1', lineHeight: 1.5 }}>
+                    When heat index exceeds 40°C (104°F), avoid direct sunlight during peak hours (11 AM – 4 PM). Take 15-minute cooling breaks every hour.
+                  </div>
+                </div>
+
+                <div style={{
+                  padding: '12px 14px', borderRadius: 14,
+                  background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)',
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#F59E0B', marginBottom: 4 }}>
+                    🟡 UV Rays Shield Guidelines
+                  </div>
+                  <div style={{ fontSize: 12, color: '#CBD5E1', lineHeight: 1.5 }}>
+                    Apply broad-spectrum SPF 30+ sunscreen 15 minutes before outdoor exposure. Reapply every 2 hours or after heavy sweating.
+                  </div>
+                </div>
+
+                <div style={{
+                  padding: '12px 14px', borderRadius: 14,
+                  background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)',
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#10B981', marginBottom: 4 }}>
+                    🟢 Emergency Response Contact
+                  </div>
+                  <div style={{ fontSize: 12, color: '#CBD5E1', lineHeight: 1.5 }}>
+                    If anyone shows symptoms of heat exhaustion (dizziness, nausea, rapid pulse), move them immediately to shade and call emergency services.
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+
         </div>
       </div>
     </AnimatedGradientBackground>
