@@ -288,12 +288,12 @@ export default function App() {
   };
 
   const dockItems: DockItemData[] = [
-    { icon: <Home size={22} />,     label: 'Home',     onClick: () => setTab('home'),      isActive: tab === 'home' },
-    { icon: <Bell size={22} />,     label: 'Alerts',   onClick: () => setTab('alerts'),    isActive: tab === 'alerts' },
-    { icon: <Droplets size={22} />, label: 'Hydrate',  onClick: () => setTab('hydration'), isActive: tab === 'hydration' },
-    { icon: <Briefcase size={22} />,label: 'Your Work',onClick: () => setTab('work'),      isActive: tab === 'work' },
-    { icon: <User size={22} />,     label: 'Profile',  onClick: () => setTab('profile'),   isActive: tab === 'profile' },
-    { icon: <Settings size={22} />, label: 'Settings', onClick: () => setTab('settings'),  isActive: tab === 'settings' },
+    { icon: <Home size={18} />,     label: 'Home',     onClick: () => setTab('home'),      isActive: tab === 'home' },
+    { icon: <Bell size={18} />,     label: 'Alerts',   onClick: () => setTab('alerts'),    isActive: tab === 'alerts' },
+    { icon: <Droplets size={18} />, label: 'Hydrate',  onClick: () => setTab('hydration'), isActive: tab === 'hydration' },
+    { icon: <Briefcase size={18} />,label: 'Your Work',onClick: () => setTab('work'),      isActive: tab === 'work' },
+    { icon: <User size={18} />,     label: 'Profile',  onClick: () => setTab('profile'),   isActive: tab === 'profile' },
+    { icon: <Settings size={18} />, label: 'Settings', onClick: () => setTab('settings'),  isActive: tab === 'settings' },
   ];
 
   return (
@@ -424,9 +424,9 @@ export default function App() {
       <Dock
         items={dockItems}
         panelHeight={64}
-        baseItemSize={42}
-        magnification={62}
-        distance={160}
+        baseItemSize={46}
+        magnification={68}
+        distance={180}
       />
 
       {/* ── Native Exit Confirmation Modal ── */}

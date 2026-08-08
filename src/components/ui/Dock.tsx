@@ -60,9 +60,11 @@ function DockItem({
     <motion.div
       ref={ref}
       style={{
-        width: size,
         height: size,
+        minWidth: size,
       }}
+      whileHover={{ scale: 1.08, y: -4 }}
+      whileTap={{ scale: 0.94 }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
@@ -101,10 +103,10 @@ function DockLabel({ children, className = '', ...rest }: { children: React.Reac
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: -10 }}
-          exit={{ opacity: 0, y: 0 }}
-          transition={{ duration: 0.2 }}
+          initial={{ opacity: 0, y: 0, scale: 0.8 }}
+          animate={{ opacity: 1, y: -12, scale: 1 }}
+          exit={{ opacity: 0, y: 0, scale: 0.8 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
           className={`dock-label ${className}`}
           role="tooltip"
           style={{ x: '-50%' }}
@@ -135,11 +137,11 @@ export default function Dock({
   items,
   className = '',
   spring = { mass: 0.1, stiffness: 150, damping: 12 },
-  magnification = 70,
-  distance = 200,
-  panelHeight = 68,
+  magnification = 68,
+  distance = 180,
+  panelHeight = 64,
   dockHeight = 256,
-  baseItemSize = 50,
+  baseItemSize = 46,
 }: DockProps) {
   const mouseX = useMotionValue(Infinity);
   const isHovered = useMotionValue(0);
@@ -181,6 +183,7 @@ export default function Dock({
             isActive={item.isActive}
           >
             <DockIcon>{item.icon}</DockIcon>
+            <span className="dock-inline-text">{item.label}</span>
             <DockLabel>{item.label}</DockLabel>
           </DockItem>
         ))}
